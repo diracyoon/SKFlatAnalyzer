@@ -96,7 +96,8 @@ void Vcb_Mu::initializeAnalyzer()
   jet_resolution = JME::JetResolution(jetPtResolutionPath);
   jet_resolution_sf = JME::JetResolutionScaleFactor(jetPtResolutionSFPath);
 
-  fitter_driver = new TKinFitterDriver(DataYear, rm_wm_constraint);
+//fitter_driver = new TKinFitterDriver(DataYear, rm_wm_constraint);
+  fitter_driver = new TKinFitterDriver(DataYear);
   
   result_tree = new TTree("Result_Tree", "Result_Tree");
   result_tree->Branch("weight", &weight);

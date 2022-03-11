@@ -1,0 +1,10 @@
+[ libKinematicFitter.so libPhysicsToolsKinFitter.so libDataFormats.so libAnalyzerTools.so ]
+# List of selected classes
+class Results
+class Results_Container
+class TFitParticlePt
+class TKinFitterDriver
+header Results.h
+header Results_Container.h
+header TFitParticlePt.h
+header TKinFitterDriver.h
