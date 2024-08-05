@@ -40,11 +40,11 @@ public:
   AnalyzerCore();
   ~AnalyzerCore();
 
-  virtual void initializeAnalyzer(){
+  virtual void initializeAnalyzer() {
 
   };
 
-  virtual void executeEvent(){
+  virtual void executeEvent() {
 
   };
 
@@ -65,10 +65,10 @@ public:
 
   Event GetEvent();
 
-  std::map<TString, std::vector<std::map<float, std::vector<float> > > > AK4CHSJECUncMap;
-  std::map<TString, std::vector<std::map<float, std::vector<float> > > > AK4PUPPIJECUncMap;
-  std::map<TString, std::vector<std::map<float, std::vector<float> > > > AK8CHSJECUncMap;
-  std::map<TString, std::vector<std::map<float, std::vector<float> > > > AK8PUPPIJECUncMap;
+  std::map<TString, std::vector<std::map<float, std::vector<float>>>> AK4CHSJECUncMap;
+  std::map<TString, std::vector<std::map<float, std::vector<float>>>> AK4PUPPIJECUncMap;
+  std::map<TString, std::vector<std::map<float, std::vector<float>>>> AK8CHSJECUncMap;
+  std::map<TString, std::vector<std::map<float, std::vector<float>>>> AK8PUPPIJECUncMap;
   vector<TString> JECSources;
   vector<TString> JECSources_byYear;
 
@@ -126,7 +126,7 @@ public:
   std::vector<Muon> ScaleMuons(const std::vector<Muon> &muons, int sys);
 
   std::vector<Jet> ScaleJets(const std::vector<Jet> &jets, int sys);
-  std::vector<Jet> ScaleJetsIndividualSource(const std::vector<Jet>& jets, int sys, TString source);
+  std::vector<Jet> ScaleJetsIndividualSource(const std::vector<Jet> &jets, int sys, TString source);
   std::vector<Jet> SmearJets(const std::vector<Jet> &jets, int sys);
 
   std::vector<FatJet> ScaleFatJets(const std::vector<FatJet> &jets, int sys);
@@ -227,15 +227,12 @@ public:
   bool IsSignalPID(int pid);
   bool FindHEMElectron(Electron electron);
 
-  float GetJECUncertainty(TString source, TString JetType,  float eta, float pt, int sys);
-  void  SetupJECUncertainty(TString source , TString JetType="AK4PFchs");
-
-
+  float GetJECUncertainty(TString source, TString JetType, float eta, float pt, int sys);
+  void SetupJECUncertainty(TString source, TString JetType = "AK4PFchs");
 
   int Get_W_Decay_Mode(const vector<Gen> &vec_gen);
 
   //==== Plotting
-
   std::map<TString, TH1D *> maphist_TH1D;
   std::map<TString, TH2D *> maphist_TH2D;
   std::map<TString, TH3D *> maphist_TH3D;
@@ -298,7 +295,7 @@ public:
   TFile *outfile = NULL;
   void SetOutfilePath(TString outname);
 
-  private:
+private:
   TH2D *JetVetoMap = NULL;
 };
 

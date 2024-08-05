@@ -100,6 +100,9 @@ protected:
   float leading_jet_charge;
   float subleading_jet_charge;
 
+  float leading_jet_pt;
+  float subleading_jet_pt;
+
   float had_w_charge_abs;
   float had_t_charge_abs;
   float lep_t_charge_abs;

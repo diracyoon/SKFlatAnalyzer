@@ -9,6 +9,9 @@ ClassImp(Jet)
   j_hadronFlavour = -999;
   j_GenHFHadronMatcher_flavour = -999;
   j_GenHFHadronMatcher_origin = -999;
+  // j_GenHFHadronMatcher_flavour.clear();
+  // j_GenHFHadronMatcher_origin.clear();
+  // j_GenHFHadronMatcher_top_weak_decay.clear();
   j_DeepCSV = -999.;
   j_DeepCSV_CvsL = -999.;
   j_DeepCSV_CvsB = -999.;
@@ -50,11 +53,20 @@ void Jet::SetGenFlavours(int pf, int hf)
   j_partonFlavour = pf;
   j_hadronFlavour = hf;
 }
-void Jet::SetGenHFHadronMatcher(int flavour, int origin)
+
+// void Jet::SetGenHFHadronMatcher(vector<int> flavour, vector<int> origin, vector<int> top_weak_decay)
+// {
+//   j_GenHFHadronMatcher_flavour = flavour;
+//   j_GenHFHadronMatcher_origin = origin;
+//   j_GenHFHadronMatcher_top_weak_decay = top_weak_decay;
+// }
+
+void Jet::SetGenHFHadronMatcher(const int &flavour, const int &origin)
 {
   j_GenHFHadronMatcher_flavour = flavour;
   j_GenHFHadronMatcher_origin = origin;
-}
+};
+
 void Jet::SetTaggerResults(std::vector<double> ds)
 {
   j_DeepCSV = ds.at(0);

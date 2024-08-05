@@ -1970,12 +1970,7 @@ double MCCorrection::PileupJetVeto_Reweight(const vector<Jet> &jets, const TStri
   {
     Jet jet = jets.at(i);
 
-    int hf_flavour = jet.GenHFHadronMatcherFlavour();
-    int hf_origin = jet.GenHFHadronMatcherOrigin();
-
-    bool gen_matched = true;
-    if (hf_flavour == -999)
-      gen_matched = false;
+    bool gen_matched = jet.IsGenMatched();
 
     bool passed = jet.Pass_PileupJetVeto(wp);
 

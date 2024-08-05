@@ -890,10 +890,12 @@ try:
                   nhadd=int(os.popen("pgrep -x hadd -u $USER |wc -l").read().strip())
                   if nhadd<4: break
                   os.system('echo "Too many hadd currently (nhadd='+str(nhadd)+'). Sleep 60s" >> JobStatus.log')
-                  time.sleep(60)                  
-                os.system('hadd -f '+outputname+'.root output/*.root >> JobStatus.log')
+                  time.sleep(60)
+                n_parallel_hadd=args.NJobs//50+1
+                #os.system('hadd -f '+outputname+'.root output/*.root >> JobStatus.log')
+                #os.system('hadd -j '+str(n_parallel_hadd)+' -f '+outputname+'.root output/*.root >> JobStatus.log')
+                os.system('condor_run -a request_cpus='+str(n_parallel_hadd)+' "hadd -j '+str(n_parallel_hadd)+' -f '+outputname+'.root output/*.root 2>&1 >> JobStatus.log"')
                 os.system('rm output/*.root')
-                #os.system('condor_run -a request_cpus=10 "hadd -j 10 -f '+outputname+'.root output/*.root 2>&1 >> JobStatus.log"')
               else:
                 os.system('hadd -f '+outputname+'.root job_*/*.root >> JobStatus.log')
                 os.system('rm job_*/*.root')

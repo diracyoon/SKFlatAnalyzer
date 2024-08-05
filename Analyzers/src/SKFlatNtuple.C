@@ -115,6 +115,7 @@ void SKFlatNtuple::Init()
   jet_hadronFlavour = 0;
   jet_GenHFHadronMatcher_flavour = 0;
   jet_GenHFHadronMatcher_origin = 0;
+  //jet_GenHFHadronMatcher_top_weak_decay = 0;
   jet_DeepCSV = 0;
   jet_DeepCSV_CvsL = 0;
   jet_DeepCSV_CvsB = 0;
@@ -480,6 +481,7 @@ void SKFlatNtuple::Init()
   fChain->SetBranchAddress("jet_hadronFlavour", &jet_hadronFlavour, &b_jet_hadronFlavour);
   fChain->SetBranchAddress("jet_GenHFHadronMatcher_flavour", &jet_GenHFHadronMatcher_flavour, &b_jet_GenHFHadronMatcher_flavour);
   fChain->SetBranchAddress("jet_GenHFHadronMatcher_origin", &jet_GenHFHadronMatcher_origin, &b_jet_GenHFHadronMatcher_origin);
+  //fChain->SetBranchAddress("jet_GenHFHadronMatcher_top_weak_decay", &jet_GenHFHadronMatcher_top_weak_decay, &b_jet_GenHFHadronMatcher_top_weak_decay);
   fChain->SetBranchAddress("jet_DeepCSV", &jet_DeepCSV, &b_jet_DeepCSV);
   fChain->SetBranchAddress("jet_DeepCSV_CvsL", &jet_DeepCSV_CvsL, &b_jet_DeepCSV_CvsL);
   fChain->SetBranchAddress("jet_DeepCSV_CvsB", &jet_DeepCSV_CvsB, &b_jet_DeepCSV_CvsB);

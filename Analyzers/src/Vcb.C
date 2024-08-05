@@ -50,21 +50,15 @@ Vcb::~Vcb()
 
   if (run_result)
   {
-    cout << "test test" << endl;
     for (unsigned int i = 0; i < vec_channel.size(); i++)
     {
-      cout << "test test " << i << endl;
       for (unsigned int j = 0; j < vec_syst_type.size(); j++)
       {
-        cout << "test test " << j << endl;
         param.syst_ = vec_syst_type.at(j);
 
         dir_syst[i][j]->cd();
         map_result_tree[vec_channel[i] + param.GetSystType()]->Write();
-
-        cout << "test test test " << j << endl;
       }
-      cout << "test test test " << i << endl;
     }
   }
 
@@ -88,11 +82,6 @@ void Vcb::initializeAnalyzer()
   //   cout << "One of RunMu or RunEl should be set." << endl;
   //   exit(1);
   // }
-
-  if (run_mu_ch)
-    channel_name = "Muon";
-  else if (run_el_ch)
-    channel_name = "Electron";
 
   run_debug = HasFlag("RunDebug");
   cout << "[Vcb::initializeAnalyzer] RunDebug = " << run_debug << endl;
@@ -244,75 +233,70 @@ void Vcb::initializeAnalyzer()
     pdfReweight->SetNewPDFAlphaS(LHAPDFHandler_New.PDFAlphaSDown, LHAPDFHandler_New.PDFAlphaSUp);
   }
 
-  //set JES breakdown
-  if(run_syst){
-      string year = to_string(GetYear());
-      JECSources = {"Absolute", "BBEC1", "EC2", "FlavorQCD", "HF", "RelativeBal"};
-      JECSources_byYear = {"Absolute", "BBEC1", "EC2", "HF", "RelativeSample"};
-      for(auto jec_source : JECSources_byYear) JECSources.push_back(jec_source+"_"+year);
-      for(auto jec_source : JECSources) SetupJECUncertainty(jec_source, "AK4PFchs");
-  }
-
   vec_channel = {"Mu", "El"};
 
   if (!IsDATA && run_syst)
   {
+    // set JES breakdown
+    string year = to_string(GetYear());
+    JECSources = {"Absolute", "BBEC1", "EC2", "FlavorQCD", "HF", "RelativeBal"};
+    JECSources_byYear = {"Absolute", "BBEC1", "EC2", "HF", "RelativeSample"};
+    for (auto jec_source : JECSources_byYear)
+      JECSources.push_back(jec_source + "_" + year);
+    for (auto jec_source : JECSources)
+      SetupJECUncertainty(jec_source, "AK4PFchs");
+
     vec_syst_type = {AnalyzerParameter::Central,
-                     AnalyzerParameter::JetEnDown,
-                     AnalyzerParameter::JetEnUp,
-                     AnalyzerParameter::JetResDown,
-                     AnalyzerParameter::JetResUp,
-                     AnalyzerParameter::UnclusteredEnergyDown,
-                     AnalyzerParameter::UnclusteredEnergyUp,
-                      AnalyzerParameter::JetEnAbsoluteUp,
-                      AnalyzerParameter::JetEnAbsoluteDown,
-                      AnalyzerParameter::JetEnBBEC1Up,
-                      AnalyzerParameter::JetEnBBEC1Down,
-                      AnalyzerParameter::JetEnEC2Up,
-                      AnalyzerParameter::JetEnEC2Down,
-                      AnalyzerParameter::JetEnFlavorQCDUp,
-                      AnalyzerParameter::JetEnFlavorQCDDown,
-                      AnalyzerParameter::JetEnHFUp,
-                      AnalyzerParameter::JetEnHFDown,
-                      AnalyzerParameter::JetEnRelativeBalUp,
-                      AnalyzerParameter::JetEnRelativeBalDown 
-                     };
-    if(to_string(GetYear())=="2018"){
-      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2018Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2018Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12018Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12018Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22018Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22018Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2018Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2018Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2018Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2018Down);
-    }
-    else if(to_string(GetYear())=="2017"){
-      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2017Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2017Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12017Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12017Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22017Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22017Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2017Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2017Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2017Up);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2017Down);
-    }
-    else if(to_string(GetYear())=="2016"){
-      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2016Up);
+                     AnalyzerParameter::UnclusteredEnergyDown, AnalyzerParameter::UnclusteredEnergyUp,
+                     AnalyzerParameter::JetResDown, AnalyzerParameter::JetResUp,
+                     AnalyzerParameter::JetEnDown, AnalyzerParameter::JetEnUp,
+                     AnalyzerParameter::JetEnAbsoluteDown, AnalyzerParameter::JetEnAbsoluteUp,
+                     AnalyzerParameter::JetEnBBEC1Down, AnalyzerParameter::JetEnBBEC1Up,
+                     AnalyzerParameter::JetEnEC2Down, AnalyzerParameter::JetEnEC2Up,
+                     AnalyzerParameter::JetEnFlavorQCDDown, AnalyzerParameter::JetEnFlavorQCDUp,
+                     AnalyzerParameter::JetEnHFDown, AnalyzerParameter::JetEnHFUp,
+                     AnalyzerParameter::JetEnRelativeBalDown, AnalyzerParameter::JetEnRelativeBalUp};
+
+    if (to_string(GetYear()) == "2016")
+    {
       vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2016Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12016Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2016Up);
       vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12016Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22016Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12016Up);
       vec_syst_type.push_back(AnalyzerParameter::JetEnEC22016Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2016Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22016Up);
       vec_syst_type.push_back(AnalyzerParameter::JetEnHF2016Down);
-      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2016Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2016Up);
       vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2016Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2016Up);
     }
+    else if (to_string(GetYear()) == "2017")
+    {
+      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2017Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2017Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12017Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12017Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22017Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22017Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2017Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2017Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2017Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2017Up);
+    }
+    else if (to_string(GetYear()) == "2018")
+    {
+      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2018Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnAbsolute2018Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12018Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnBBEC12018Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22018Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnEC22018Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2018Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnHF2018Up);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2018Down);
+      vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2018Up);
+    }
+
     // if (run_el_ch)
     // {
     //   vec_syst_type.push_back(AnalyzerParameter::ElectronEnDown);
@@ -477,7 +461,43 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
 
       vec_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
       vec_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
-    }
+
+      /*
+        vector<int> vec_flavour = jet.GenHFHadronMatcherFlavour();
+        vector<int> vec_origin = jet.GenHFHadronMatcherOrigin();
+        vector<int> vec_top_weak_decay = jet.GenHFHadronMatcherTopWeakDecay();
+
+       for (unsigned int j = 0; j < jet.GenHFHadronMatcherSize(); j++)
+        {
+          int flavour = vec_flavour[j];
+          int origin = vec_origin[j];
+          int top_weak_decay = vec_top_weak_decay[j];
+
+          // cout << "i = " << i << ", top_weak_decay = " << top_weak_decay  << ", flavour = " << flavour << ", origin = " << origin << endl;
+        } // for (unsigned int j = 0; j < jet.GenHFHadronMatcherSize(); j++)
+
+        // if at least one B hadron in jet, b is assigned to the jet
+        if (find(vec_flavour.begin(), vec_flavour.end(), 5) != vec_flavour.end())
+          vec_gen_hf_flavour.push_back(5);
+        // if no B hadron in jet and at least one C in jet, c is assigned to the jet
+        else if (find(vec_flavour.begin(), vec_flavour.end(), 4) != vec_flavour.end())
+          vec_gen_hf_flavour.push_back(4);
+        // gen jet matched
+        else if (find(vec_flavour.begin(), vec_flavour.end(), 1) != vec_flavour.end())
+          vec_gen_hf_flavour.push_back(1);
+        // no gen jet matched
+        else
+          vec_gen_hf_flavour.push_back(-999);
+
+        // if only one hadron matched to jet, the origin of the hadron is assigned to jet
+        if (jet.GenHFHadronMatcherSize() == 1)
+          vec_gen_hf_origin.push_back(vec_origin[0]);
+        // if two or more hadron matched to jet, if all origins are same, the origin is assinged to jet. If not let's assign -900
+        else
+        {
+        }
+      */
+    } // for (unsigned int i = 0; i < vec_jet.size(); i++)
 
     // lumi
     weight_lumi = ev.GetTriggerLumi("Full");
@@ -576,263 +596,9 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
 
   met.SetPtEtaPhiE(met_corr.first, 0, met_corr.second, met_corr.first);
 
-  // syst for objects
-  if (param.syst_ == AnalyzerParameter::JetEnDown)
-  {
-    vec_this_jet = ScaleJets(vec_jet, -1);
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnUp)
-  {
-    vec_this_jet = ScaleJets(vec_jet, +1);
-    met = Rebalance_Met();
-  }
-  //JES breakdown....
-  /*    JetEnAbsoluteUp, JetEnAbsoluteDown,
-    JetEnBBEC1Up, JetEnBBEC1Down,
-    JetEnEC2Up, JetEnEC2Down,
-    JetEnFlavorQCDUp, JetEnFlavorQCDDown,
-    JetEnHFUp, JetEnHFDown,
-    JetEnRelativeBalUp, JetEnRelativeBalDown,
-    JetEnAbsolute2018Up, JetEnAbsolute2018Down,
-    JetEnBBEC12018Up, JetEnBBEC12018Down,
-    JetEnEC22018Up, JetEnEC22018Down,
-    JetEnHF2018Up, JetEnHF2018Down,
-    JetEnRelativeSample2018Up, JetEnRelativeSample2018Down,
-    JetEnAbsolute2017Up, JetEnAbsolute2017Down,
-    JetEnBBEC12017Up, JetEnBBEC12017Down,
-    JetEnEC22017Up, JetEnEC22017Down,
-    JetEnHF2017Up, JetEnHF2017Down,
-    JetEnRelativeSample2017Up, JetEnRelativeSample2017Down,
-    JetEnAbsolute2016Up, JetEnAbsolute2016Down,
-    JetEnBBEC12016Up, JetEnBBEC12016Down,
-    JetEnEC22016Up, JetEnEC22016Down,
-    JetEnHF2016Up, JetEnHF2016Down,
-    JetEnRelativeSample2016Up, JetEnRelativeSample2016Down*/
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsoluteUp)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "Absolute");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsoluteDown)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "Absolute");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC1Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "BBEC1");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC1Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "BBEC1");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC2Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "EC2");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC2Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "EC2");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnFlavorQCDUp)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "FlavorQCD");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnFlavorQCDDown)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "FlavorQCD");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHFUp)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "HF");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHFDown)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "HF");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeBalUp)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "RelativeBal");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeBalDown)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "RelativeBal");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2018Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "Absolute_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2018Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "Absolute_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12018Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "BBEC1_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12018Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "BBEC1_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22018Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "EC2_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22018Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "EC2_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2018Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "HF_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2018Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "HF_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "RelativeSample_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "RelativeSample_2018");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "Absolute_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "Absolute_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12017Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "BBEC1_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12017Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "BBEC1_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22017Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "EC2_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22017Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "EC2_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2017Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "HF_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2017Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "HF_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "RelativeSample_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "RelativeSample_2017");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "Absolute_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "Absolute_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12016Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "BBEC1_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12016Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "BBEC1_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22016Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "EC2_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnEC22016Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "EC2_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2016Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "HF_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnHF2016Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "HF_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Up)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, 1, "RelativeSample_2016");
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Down)
-  {
-    vec_this_jet = ScaleJetsIndividualSource(vec_jet, -1, "RelativeSample_2016");
-    met = Rebalance_Met();
-  }
-
-  
-  
-
-  if (param.syst_ == AnalyzerParameter::JetResDown)
-  {
-    vec_this_jet = SmearJets(vec_jet, -1);
-    met = Rebalance_Met();
-  }
-  else if (param.syst_ == AnalyzerParameter::JetResUp)
-  {
-    vec_this_jet = SmearJets(vec_jet, +1);
-    met = Rebalance_Met();
-  }
+  //////////////////////
+  /* syst for objects */
+  //////////////////////
 
   // if(param.syst_ == AnalyzerParameter::MuonEnUp) vec_this_muon = ScaleMuons(vec_this_muon, +1);
   // if(param.syst_ == AnalyzerParameter::MuonEnDown) vec_this_muon = ScaleMuons(vec_this_muon, -1);
@@ -855,6 +621,241 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
   else if (param.syst_ == AnalyzerParameter::ElectronResUp)
   {
     vec_this_electron = SmearElectrons(vec_this_electron, +1);
+    met = Rebalance_Met();
+  }
+
+  if (param.syst_ == AnalyzerParameter::JetResDown)
+  {
+    vec_this_jet = SmearJets(vec_this_jet, -1);
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetResUp)
+  {
+    vec_this_jet = SmearJets(vec_this_jet, +1);
+    met = Rebalance_Met();
+  }
+
+  // JES Total
+  else if (param.syst_ == AnalyzerParameter::JetEnDown)
+  {
+    vec_this_jet = ScaleJets(vec_this_jet, -1);
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnUp)
+  {
+    vec_this_jet = ScaleJets(vec_this_jet, +1);
+    met = Rebalance_Met();
+  }
+
+  // JES breakdown
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsoluteDown)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "Absolute");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsoluteUp)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "Absolute");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC1Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "BBEC1");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC1Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "BBEC1");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC2Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "EC2");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC2Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "EC2");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnFlavorQCDDown)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "FlavorQCD");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnFlavorQCDUp)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "FlavorQCD");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHFDown)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "HF");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHFUp)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "HF");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeBalDown)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "RelativeBal");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeBalUp)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "RelativeBal");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "Absolute_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "Absolute_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12016Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "BBEC1_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12016Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "BBEC1_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22016Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "EC2_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22016Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "EC2_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2016Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "HF_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2016Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "HF_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "RelativeSample_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "RelativeSample_2016");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "Absolute_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "Absolute_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12017Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "BBEC1_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12017Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "BBEC1_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22017Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "EC2_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22017Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "EC2_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2017Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "HF_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2017Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "HF_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "RelativeSample_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "RelativeSample_2017");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2018Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "Absolute_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2018Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "Absolute_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12018Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "BBEC1_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnBBEC12018Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "BBEC1_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22018Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "EC2_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnEC22018Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "EC2_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2018Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "HF_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnHF2018Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "HF_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Down)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, -1, "RelativeSample_2018");
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Up)
+  {
+    vec_this_jet = ScaleJetsIndividualSource(vec_this_jet, +1, "RelativeSample_2018");
     met = Rebalance_Met();
   }
 
@@ -886,10 +887,7 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
   {
     Jet jet = vec_sel_jet.at(i);
 
-    int hf_flavour = jet.GenHFHadronMatcherFlavour();
-    int hf_origin = jet.GenHFHadronMatcherOrigin();
-
-    if (hf_flavour == -999 && hf_origin == -999)
+    if (!jet.IsGenMatched())
       n_pu_jet_before++;
   }
   int n_real_jet_before = n_sel_jet - n_pu_jet_before;
@@ -902,10 +900,7 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
   {
     Jet jet = vec_sel_jet.at(i);
 
-    int hf_flavour = jet.GenHFHadronMatcherFlavour();
-    int hf_origin = jet.GenHFHadronMatcherOrigin();
-
-    if (hf_flavour == -999 && hf_origin == -999)
+    if (!jet.IsGenMatched())
       n_pu_jet_after++;
   }
   int n_real_jet_after = n_sel_jet - n_pu_jet_after;
@@ -1067,7 +1062,16 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
   FillHist(param.Name + Form("/Cut_Flow_%d", decay_mode), Cut_Flow::Single_Lepton, weight, n_cut_flow, 0, n_cut_flow);
 
   // cut on jet
+  // at least four jets
   if (n_sel_jet < 4)
+    return;
+
+  // minimum pt cut on leading jet
+  if (vec_sel_jet[0].Pt() < LEADING_JET_PT)
+    return;
+
+  // minimum pt cut on subleading jet
+  if (vec_sel_jet[1].Pt() < SUBLEADING_JET_PT)
     return;
 
   if (!IsDATA)
@@ -1192,7 +1196,7 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
         weight_b_tag = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "central");
     } //   if (run_debug)
 
-    weight *= weight_b_tag;
+    // weight *= weight_b_tag;
   }
 
   if (!IsDATA)
@@ -1235,14 +1239,56 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
       weight_c_tag_down_xsec_brunc_wjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_WJets_c_Down");
       weight_c_tag_up_xsec_brunc_wjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_WJets_c_Up");
     }
-    else if (param.syst_ == AnalyzerParameter::JetEnDown)
-      weight_c_tag_down_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Down");
-    else if (param.syst_ == AnalyzerParameter::JetEnUp)
-      weight_c_tag_up_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Up");
     else if (param.syst_ == AnalyzerParameter::JetResDown)
       weight_c_tag_down_jer = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jer_Down");
     else if (param.syst_ == AnalyzerParameter::JetResUp)
       weight_c_tag_up_jer = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jer_Up");
+    else if (param.syst_ == AnalyzerParameter::JetEnDown ||
+             param.syst_ == AnalyzerParameter::JetEnAbsoluteDown ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC1Down ||
+             param.syst_ == AnalyzerParameter::JetEnEC2Down ||
+             param.syst_ == AnalyzerParameter::JetEnFlavorQCDDown ||
+             param.syst_ == AnalyzerParameter::JetEnHFDown ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeBalDown ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12016Down ||
+             param.syst_ == AnalyzerParameter::JetEnEC22016Down ||
+             param.syst_ == AnalyzerParameter::JetEnHF2016Down ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Down ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12017Down ||
+             param.syst_ == AnalyzerParameter::JetEnEC22017Down ||
+             param.syst_ == AnalyzerParameter::JetEnHF2017Down ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Down ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2018Down ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12018Down ||
+             param.syst_ == AnalyzerParameter::JetEnEC22018Down ||
+             param.syst_ == AnalyzerParameter::JetEnHF2018Down ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Down)
+      weight_c_tag_down_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Down");
+    else if (param.syst_ == AnalyzerParameter::JetEnUp ||
+             param.syst_ == AnalyzerParameter::JetEnAbsoluteUp ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC1Up ||
+             param.syst_ == AnalyzerParameter::JetEnEC2Up ||
+             param.syst_ == AnalyzerParameter::JetEnFlavorQCDUp ||
+             param.syst_ == AnalyzerParameter::JetEnHFUp ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeBalUp ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12016Up ||
+             param.syst_ == AnalyzerParameter::JetEnEC22016Up ||
+             param.syst_ == AnalyzerParameter::JetEnHF2016Up ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Up ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12017Up ||
+             param.syst_ == AnalyzerParameter::JetEnEC22017Up ||
+             param.syst_ == AnalyzerParameter::JetEnHF2017Up ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Up ||
+             param.syst_ == AnalyzerParameter::JetEnAbsolute2018Up ||
+             param.syst_ == AnalyzerParameter::JetEnBBEC12018Up ||
+             param.syst_ == AnalyzerParameter::JetEnEC22018Up ||
+             param.syst_ == AnalyzerParameter::JetEnHF2018Up ||
+             param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Up)
+      weight_c_tag_up_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Up");
     else
       weight_c_tag = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "central");
 
@@ -1289,8 +1335,9 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
     vector<float> vec_jer_match;
     for (auto &jet : vec_sel_jet_match)
     {
-      int jet_flavour = jet.GenHFHadronMatcherFlavour();
-      int jet_origin = jet.GenHFHadronMatcherOrigin();
+      // test GenHFHadron
+      int jet_flavour = 0; // jet.GenHFHadronMatcherFlavour();
+      int jet_origin = 0;  // jet.GenHFHadronMatcherOrigin();
 
       vec_hf_flavour.push_back(jet_flavour);
       vec_hf_origin.push_back(jet_origin);
@@ -2920,27 +2967,32 @@ void Vcb::Make_Result_Tree(AnalyzerParameter &param)
     // chk_hf_contamination
     chk_hf_contamination = false;
 
-    int hf_origin = jet_w_u.GenHFHadronMatcherOrigin();
+    // test GenHFHadron
+    int hf_origin = 1; // jet_w_u.GenHFHadronMatcherOrigin();
     if (hf_origin == 21)
       chk_hf_contamination = true;
 
-    hf_origin = jet_w_d.GenHFHadronMatcherOrigin();
+    // test GenHFHadron
+    hf_origin = 1; // jet_w_d.GenHFHadronMatcherOrigin();
     if (hf_origin == 21)
       chk_hf_contamination = true;
 
-    if (jet_had_t_b.GenHFHadronMatcherFlavour() == -999 && jet_had_t_b.GenHFHadronMatcherOrigin() == -999)
+    if (!jet_had_t_b.IsGenMatched())
       pu_conta_had_t_b = true;
     else
       pu_conta_had_t_b = false;
-    if (jet_w_u.GenHFHadronMatcherFlavour() == -999 && jet_w_u.GenHFHadronMatcherOrigin() == -999)
+
+    if (!jet_w_u.IsGenMatched())
       pu_conta_w_u = true;
     else
       pu_conta_w_u = false;
-    if (jet_w_d.GenHFHadronMatcherFlavour() == -999 && jet_w_d.GenHFHadronMatcherOrigin() == -999)
+
+    if (!jet_w_d.IsGenMatched())
       pu_conta_w_d = true;
     else
       pu_conta_w_d = false;
-    if (jet_lep_t_b.GenHFHadronMatcherFlavour() == -999 && jet_lep_t_b.GenHFHadronMatcherOrigin() == -999)
+
+    if (!jet_lep_t_b.IsGenMatched())
       pu_conta_lep_t_b = true;
     else
       pu_conta_lep_t_b = false;
@@ -3658,14 +3710,56 @@ void Vcb::Set_Result_Tree()
         result_tree->Branch("weight_c_tag_down_xsec_brunc_wjets_c", &weight_c_tag_down_xsec_brunc_wjets_c);
         result_tree->Branch("weight_c_tag_up_xsec_brunc_wjets_c", &weight_c_tag_up_xsec_brunc_wjets_c);
       }
-      else if (syst_type == AnalyzerParameter::JetEnDown)
-        result_tree->Branch("weight_c_tag_down_jes_total", &weight_c_tag_down_jes_total);
-      else if (syst_type == AnalyzerParameter::JetEnUp)
-        result_tree->Branch("weight_c_tag_up_jes_total", &weight_c_tag_up_jes_total);
       else if (syst_type == AnalyzerParameter::JetResDown)
         result_tree->Branch("weight_c_tag_down_jer", &weight_c_tag_down_jer);
       else if (syst_type == AnalyzerParameter::JetResUp)
         result_tree->Branch("weight_c_tag_up_jer", &weight_c_tag_up_jer);
+      else if (syst_type == AnalyzerParameter::JetEnDown ||
+               syst_type == AnalyzerParameter::JetEnAbsoluteDown ||
+               syst_type == AnalyzerParameter::JetEnBBEC1Down ||
+               syst_type == AnalyzerParameter::JetEnEC2Down ||
+               syst_type == AnalyzerParameter::JetEnFlavorQCDDown ||
+               syst_type == AnalyzerParameter::JetEnHFDown ||
+               syst_type == AnalyzerParameter::JetEnRelativeBalDown ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2016Down ||
+               syst_type == AnalyzerParameter::JetEnBBEC12016Down ||
+               syst_type == AnalyzerParameter::JetEnEC22016Down ||
+               syst_type == AnalyzerParameter::JetEnHF2016Down ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2016Down ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2017Down ||
+               syst_type == AnalyzerParameter::JetEnBBEC12017Down ||
+               syst_type == AnalyzerParameter::JetEnEC22017Down ||
+               syst_type == AnalyzerParameter::JetEnHF2017Down ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2017Down ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2018Down ||
+               syst_type == AnalyzerParameter::JetEnBBEC12018Down ||
+               syst_type == AnalyzerParameter::JetEnEC22018Down ||
+               syst_type == AnalyzerParameter::JetEnHF2018Down ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2018Down)
+        result_tree->Branch("weight_c_tag_down_jes_total", &weight_c_tag_down_jes_total);
+      else if (syst_type == AnalyzerParameter::JetEnUp ||
+               syst_type == AnalyzerParameter::JetEnAbsoluteUp ||
+               syst_type == AnalyzerParameter::JetEnBBEC1Up ||
+               syst_type == AnalyzerParameter::JetEnEC2Up ||
+               syst_type == AnalyzerParameter::JetEnFlavorQCDUp ||
+               syst_type == AnalyzerParameter::JetEnHFUp ||
+               syst_type == AnalyzerParameter::JetEnRelativeBalUp ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2016Up ||
+               syst_type == AnalyzerParameter::JetEnBBEC12016Up ||
+               syst_type == AnalyzerParameter::JetEnEC22016Up ||
+               syst_type == AnalyzerParameter::JetEnHF2016Up ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2016Up ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2017Up ||
+               syst_type == AnalyzerParameter::JetEnBBEC12017Up ||
+               syst_type == AnalyzerParameter::JetEnEC22017Up ||
+               syst_type == AnalyzerParameter::JetEnHF2017Up ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2017Up ||
+               syst_type == AnalyzerParameter::JetEnAbsolute2018Up ||
+               syst_type == AnalyzerParameter::JetEnBBEC12018Up ||
+               syst_type == AnalyzerParameter::JetEnEC22018Up ||
+               syst_type == AnalyzerParameter::JetEnHF2018Up ||
+               syst_type == AnalyzerParameter::JetEnRelativeSample2018Up)
+        result_tree->Branch("weight_c_tag_up_jes_total", &weight_c_tag_up_jes_total);
       else
         result_tree->Branch("weight_c_tag", &weight_c_tag);
 

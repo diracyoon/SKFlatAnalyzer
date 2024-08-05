@@ -14,9 +14,18 @@ public:
   void SetGenFlavours(int pf, int hf);
   inline int partonFlavour() const { return j_partonFlavour; }
   inline int hadronFlavour() const { return j_hadronFlavour; }
-  void SetGenHFHadronMatcher(int flavour, int origin);
-  inline int GenHFHadronMatcherFlavour() const { return j_GenHFHadronMatcher_flavour; }
-  inline int GenHFHadronMatcherOrigin() const { return j_GenHFHadronMatcher_origin; }
+  // void SetGenHFHadronMatcher(vector<int> flavour, vector<int> origin, vector<int> top_weak_decay);
+  void SetGenHFHadronMatcher(const int &flavour, const int &origin);
+  // inline int GenHFHadronMatcherSize() { return j_GenHFHadronMatcher_flavour.size(); }
+  //  inline vector<int> GenHFHadronMatcherFlavour() const { return j_GenHFHadronMatcher_flavour; }
+  //  inline vector<int> GenHFHadronMatcherOrigin() const { return j_GenHFHadronMatcher_origin; }
+  //  inline vector<int> GenHFHadronMatcherTopWeakDecay() const { return j_GenHFHadronMatcher_top_weak_decay; }
+  //  int GenHFHadronMatcherFlavour(const int &index) const { return j_GenHFHadronMatcher_flavour[index]; }
+  //  int GenHFHadronMatcherOrigin(const int &index) const { return j_GenHFHadronMatcher_origin[index]; }
+  //  int GenHFHadronMatcherTopWeakDecay(const int &index) const { return j_GenHFHadronMatcher_top_weak_decay[index]; }
+  int GenHFHadronMatcherFlavour() const { return j_GenHFHadronMatcher_flavour; }
+  int GenHFHadronMatcherOrigin() const { return j_GenHFHadronMatcher_origin; }
+  //inline bool IsGenMatched() const { return j_GenHFHadronMatcher_flavour[0] != -999; }
   inline bool IsGenMatched() const { return j_GenHFHadronMatcher_flavour != -999; }
   void SetTaggerResults(std::vector<double> ds);
   void SetEnergyFractions(double cH, double nH, double nEM, double cEM, double muE);
@@ -75,6 +84,9 @@ private:
   int j_hadronFlavour;
   int j_GenHFHadronMatcher_flavour;
   int j_GenHFHadronMatcher_origin;
+  // vector<int> j_GenHFHadronMatcher_flavour;
+  // vector<int> j_GenHFHadronMatcher_origin;
+  // vector<int> j_GenHFHadronMatcher_top_weak_decay;
   double j_DeepCSV;
   double j_DeepCSV_CvsL;
   double j_DeepCSV_CvsB;

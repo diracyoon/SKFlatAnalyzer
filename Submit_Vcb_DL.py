@@ -10,7 +10,7 @@ parser.add_argument('-e', dest='era', default="2018")
 parser.add_argument('-data', action='store_true', default="")
 parser.add_argument('-mc', action='store_true', default="")
 parser.add_argument('-flag', dest='flag', default="All")
-parser.add_argument('-nmax', dest='nmax', default="400")
+parser.add_argument('-nmax', dest='nmax', default="600")
 args = parser.parse_args()
 
 if args.era=="2016a": args.era="2016preVFP"
@@ -45,8 +45,8 @@ if args.mc == True:
                    "SingleTop_tch_top_Incl":[100,50],
                    "DYJets_MG":[20,40],
                    "WJets_MG":[20,40],
-                   "DYJets":[20,50],
-                   "WJets_Sherpa":[20,50],
+                   #"DYJets":[20,50],
+                   #"WJets_Sherpa":[20,50],
                    "QCD_bEnriched_HT100to200": [3,10],
                    "QCD_bEnriched_HT200to300": [2,10],
                    "QCD_bEnriched_HT300to500": [2,5],
@@ -72,18 +72,18 @@ if args.mc == True:
             os.system(operation)
 
     if args.flag == "Syst_Top" or args.flag == "All":
-        mc_list = {"TTLJ_powheg_CP5Down": [300, 200],
-                   "TTLJ_powheg_CP5Up": [300, 200],
-                   "TTLJ_powheg_hdampDown": [300, 200],
-                   "TTLJ_powheg_hdampUp": [300, 200],
-                   "TTLJ_powheg_mtop171p5": [300, 200],
-                   "TTLJ_powheg_mtop173p5": [300, 200],
-                   "TTLL_powheg_CP5Down": [300, 100],
-                   "TTLL_powheg_CP5Up": [300, 100],
-                   "TTLL_powheg_hdampDown": [300, 100],
-                   "TTLL_powheg_hdampUp": [300, 100],
-                   "TTLL_powheg_mtop171p5": [300, 100],
-                   "TTLL_powheg_mtop173p5": [300, 100],
+        mc_list = {"TTLJ_powheg_CP5Down": [300, 20],
+                   "TTLJ_powheg_CP5Up": [300, 20],
+                   "TTLJ_powheg_hdampDown": [300, 20],
+                   "TTLJ_powheg_hdampUp": [300, 20],
+                   "TTLJ_powheg_mtop171p5": [300, 20],
+                   "TTLJ_powheg_mtop173p5": [300, 20],
+                   "TTLL_powheg_CP5Down": [300, 10],
+                   "TTLL_powheg_CP5Up": [300, 10],
+                   "TTLL_powheg_hdampDown": [300, 10],
+                   "TTLL_powheg_hdampUp": [300, 10],
+                   "TTLL_powheg_mtop171p5": [300, 10],
+                   "TTLL_powheg_mtop173p5": [300, 10],
                }
         
         for mc in mc_list:

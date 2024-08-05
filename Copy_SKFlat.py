@@ -45,7 +45,6 @@ mc_list = {#'TTLJ_powheg':'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',
            #'TTLJ_WtoCB_powheg0':'ttj_Vcb_NLO_FXFX_Summer20UL16APV_9M_Events',
            #'TTLJ_WtoCB_powheg0':'ttj_Vcb_NLO_FXFX_Summer20UL16_9M_Events',
     'TTLJ_WtoCB_powheg':'TTToSemiLeptonic_Vcb_TuneCP5_13TeV-powheg-pythia8',
-
 }
 
 ssh_key = "ssh isyoon@cms01.knu.ac.kr"

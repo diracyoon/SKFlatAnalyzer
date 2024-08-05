@@ -94,6 +94,7 @@ else:
     
     #find lastest crab output
     result = os.listdir(path)
+    result = [temp for temp in result if not temp.find("Bak")]
     path += str(result[-1])
 
     find = subprocess.Popen(['find', path, '-type', 'f'], stdout=subprocess.PIPE)
