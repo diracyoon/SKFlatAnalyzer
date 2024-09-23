@@ -87,6 +87,7 @@ protected:
 
   int n_sel_jet;
   int n_b_jet;
+  int n_c_jet;
   float ht;
 
   float leading_jet_bvsc;
@@ -113,6 +114,12 @@ protected:
 
   float bvsc_third;
   float bvsc_fourth;
+
+  float bvsc_third_pt;
+  float bvsc_fourth_pt;
+
+  float bvsc_third_eta;
+  float bvsc_fourth_eta;
 
   int decay_mode;
 

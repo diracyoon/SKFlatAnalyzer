@@ -879,9 +879,11 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
 
   // Jet selection
   vec_sel_jet = SelectJets(vec_this_jet, param.Jet_ID, JET_PT, jet_eta_cut);
+  vec_sel_jet = SelectJets(vec_sel_jet, param.PUJet_Veto_ID, JET_PT, jet_eta_cut);
   vec_sel_jet = JetsVetoLeptonInside(vec_sel_jet, vec_electron_veto, vec_muon_veto, DR_LEPTON_VETO);
   n_sel_jet = vec_sel_jet.size();
 
+  /*
   int n_pu_jet_before = 0;
   for (unsigned int i = 0; i < vec_sel_jet.size(); i++)
   {
@@ -904,8 +906,11 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
       n_pu_jet_after++;
   }
   int n_real_jet_after = n_sel_jet - n_pu_jet_after;
+  */
 
+  // HEM veto
   weight_hem_veto = Weight_HEM_Veto(vec_sel_jet);
+  weight *= weight_hem_veto;
 
   // jets for gen matching. Not to introduce matching bias, jets for matching have loose pt cut
   vec_sel_jet_match = SelectJets(vec_this_jet, param.Jet_ID, JET_PT_MATCH, JET_ETA_MATCH);
@@ -1317,10 +1322,10 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
   FillHist(param.Name + "/Cut_Flow", Cut_Flow::MET, weight, n_cut_flow, 0, n_cut_flow);
   FillHist(param.Name + Form("/Cut_Flow_%d", decay_mode), Cut_Flow::MET, weight, n_cut_flow, 0, n_cut_flow);
 
-  FillHist(param.Name + "/N_Real_Jets_Before_PUJet_Veto", n_real_jet_before, weight, 20, 0, 20);
-  FillHist(param.Name + "/N_PU_Jets_Before_PUJet_Veto", n_pu_jet_before, weight, 20, 0, 20);
-  FillHist(param.Name + "/N_Real_Jets_After_PUJet_Veto", n_real_jet_after, weight, 20, 0, 20);
-  FillHist(param.Name + "/N_PU_Jets_After_PUJet_Veto", n_pu_jet_after, weight, 20, 0, 20);
+  // FillHist(param.Name + "/N_Real_Jets_Before_PUJet_Veto", n_real_jet_before, weight, 20, 0, 20);
+  // FillHist(param.Name + "/N_PU_Jets_Before_PUJet_Veto", n_pu_jet_before, weight, 20, 0, 20);
+  // FillHist(param.Name + "/N_Real_Jets_After_PUJet_Veto", n_real_jet_after, weight, 20, 0, 20);
+  // FillHist(param.Name + "/N_PU_Jets_After_PUJet_Veto", n_pu_jet_after, weight, 20, 0, 20);
 
   // Gen matching
   vector<int> vec_hf_flavour;
@@ -1335,9 +1340,8 @@ void Vcb::executeEventFromParameter(AnalyzerParameter param)
     vector<float> vec_jer_match;
     for (auto &jet : vec_sel_jet_match)
     {
-      // test GenHFHadron
-      int jet_flavour = 0; // jet.GenHFHadronMatcherFlavour();
-      int jet_origin = 0;  // jet.GenHFHadronMatcherOrigin();
+      int jet_flavour = jet.GenHFHadronMatcherFlavour();
+      int jet_origin = jet.GenHFHadronMatcherOrigin();
 
       vec_hf_flavour.push_back(jet_flavour);
       vec_hf_origin.push_back(jet_origin);
@@ -2967,13 +2971,11 @@ void Vcb::Make_Result_Tree(AnalyzerParameter &param)
     // chk_hf_contamination
     chk_hf_contamination = false;
 
-    // test GenHFHadron
-    int hf_origin = 1; // jet_w_u.GenHFHadronMatcherOrigin();
+    int hf_origin = jet_w_u.GenHFHadronMatcherOrigin();
     if (hf_origin == 21)
       chk_hf_contamination = true;
 
-    // test GenHFHadron
-    hf_origin = 1; // jet_w_d.GenHFHadronMatcherOrigin();
+    hf_origin = jet_w_d.GenHFHadronMatcherOrigin();
     if (hf_origin == 21)
       chk_hf_contamination = true;
 

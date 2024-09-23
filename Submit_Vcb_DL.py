@@ -20,10 +20,10 @@ if args.era=="2016b": args.era="2016postVFP"
 
 # data
 if args.data == True:
-    data_list = {"SingleMuon":[40,40], "EGamma":[40,40]}
+    data_list = {"SingleMuon":[40,10], "EGamma":[40,10]}
     if args.era != "2018":
         del data_list["EGamma"]
-        data_list["SingleElectron"] = [40, 40]
+        data_list["SingleElectron"] = [40, 10]
     
     for data in data_list:
         operation = f"nohup SKFlat.py -a Vcb_DL -i {data} -n {data_list[data][1]} -e {args.era} --nmax {args.nmax} &"

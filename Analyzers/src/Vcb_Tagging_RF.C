@@ -283,9 +283,8 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       if (jet_eta_cut < abs(jet.Eta()))
         continue;
 
-      // test mark
-      // vec_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
-      // vec_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
+      vec_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
+      vec_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
     }
 
     // lumi
@@ -616,9 +615,8 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   {
     Jet jet = vec_sel_jet[i];
 
-    // test mark
-    // vec_sel_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
-    // vec_sel_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
+    vec_sel_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
+    vec_sel_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
   }
 
   weight_hem_veto = Weight_HEM_Veto(vec_sel_jet);
