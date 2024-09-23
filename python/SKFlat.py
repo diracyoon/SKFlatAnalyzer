@@ -891,11 +891,24 @@ try:
                   if nhadd<4: break
                   os.system('echo "Too many hadd currently (nhadd='+str(nhadd)+'). Sleep 60s" >> JobStatus.log')
                   time.sleep(60)
-                n_parallel_hadd=args.NJobs//50+1
+                
+                n_parallel_hadd = args.NJobs//60
+                if n_parallel_hadd == 0:
+                  n_parallel_hadd += 1
+
                 #os.system('hadd -f '+outputname+'.root output/*.root >> JobStatus.log')
                 #os.system('hadd -j '+str(n_parallel_hadd)+' -f '+outputname+'.root output/*.root >> JobStatus.log')
-                os.system('condor_run -a request_cpus='+str(n_parallel_hadd)+' "hadd -j '+str(n_parallel_hadd)+' -f '+outputname+'.root output/*.root 2>&1 >> JobStatus.log"')
-                os.system('rm output/*.root')
+                if args.InputSample == "TTLJ_powheg" or args.InputSample == "TTLL_powheg":
+                  os.system('condor_run -a request_memory=100*1024 request_disk=300*1024 request_cpus='+str(n_parallel_hadd)+' "hadd -v 1 -j '+str(n_parallel_hadd)+' -d '+base_rundir+' -f '+outputname+'.root output/*.root 2>&1 >> JobStatus.log"')
+                else:
+                  os.system('hadd -f '+outputname+'.root output/*.root >> JobStatus.log')
+                
+                with open('JobStatus.log', 'r') as job_log:
+                  log_content = job_log.read()
+                      
+                  if "hadd merged" in log_content:
+                    os.system('rm output/*.root')
+
               else:
                 os.system('hadd -f '+outputname+'.root job_*/*.root >> JobStatus.log')
                 os.system('rm job_*/*.root')
