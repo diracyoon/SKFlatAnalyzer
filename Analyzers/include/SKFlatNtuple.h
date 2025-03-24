@@ -114,6 +114,7 @@ public:
   Float_t vertex_Y;
   Float_t vertex_Z;
   vector<string> *HLT_TriggerName;
+  int genTtbarId;
   vector<float> *jet_pt;
   vector<float> *jet_eta;
   vector<float> *jet_phi;
@@ -121,11 +122,11 @@ public:
   vector<float> *jet_area;
   vector<int> *jet_partonFlavour;
   vector<int> *jet_hadronFlavour;
-  vector<int> *jet_GenHFHadronMatcher_flavour;
-  vector<int> *jet_GenHFHadronMatcher_origin;
-  //  vector<vector<int>> *jet_GenHFHadronMatcher_flavour;
-  //  vector<vector<int>> *jet_GenHFHadronMatcher_origin;
-  //  vector<vector<int>> *jet_GenHFHadronMatcher_top_weak_decay;
+  // vector<int> *jet_GenHFHadronMatcher_flavour;
+  // vector<int> *jet_GenHFHadronMatcher_origin;
+  vector<vector<int>> *jet_GenHFHadronMatcher_flavour;
+  vector<vector<int>> *jet_GenHFHadronMatcher_origin;
+  vector<vector<int>> *jet_GenHFHadronMatcher_top_weak_decay;
   vector<float> *jet_DeepCSV;
   vector<float> *jet_DeepCSV_CvsL;
   vector<float> *jet_DeepCSV_CvsB;
@@ -484,35 +485,36 @@ public:
   vector<bool> *tau_idDecayModeNewDMs;
 
   // List of branches
-  TBranch *b_IsData;                                      //!
-  TBranch *b_nTotal;                                      //!
-  TBranch *b_runNum;                                      //!
-  TBranch *b_evtNum;                                      //!
-  TBranch *b_lumiBlock;                                   //!
-  TBranch *b_Rho;                                         //!
-  TBranch *b_RhoNC;                                       //!
-  TBranch *b_nPV;                                         //!
-  TBranch *b_L1PrefireReweight_Central;                   //!
-  TBranch *b_L1PrefireReweight_Up;                        //!
-  TBranch *b_L1PrefireReweight_Down;                      //!
-  TBranch *b_Flag_goodVertices;                           //!
-  TBranch *b_Flag_globalSuperTightHalo2016Filter;         //!
-  TBranch *b_Flag_HBHENoiseFilter;                        //!
-  TBranch *b_Flag_HBHENoiseIsoFilter;                     //!
-  TBranch *b_Flag_EcalDeadCellTriggerPrimitiveFilter;     //!
-  TBranch *b_Flag_BadPFMuonFilter;                        //!
-  TBranch *b_Flag_BadPFMuonDzFilter;                      //!
-  TBranch *b_Flag_BadChargedCandidateFilter;              //!
-  TBranch *b_Flag_eeBadScFilter;                          //!
-  TBranch *b_Flag_ecalBadCalibFilter;                     //!
-  TBranch *b_PVtrackSize;                                 //!
-  TBranch *b_PVchi2;                                      //!
-  TBranch *b_PVndof;                                      //!
-  TBranch *b_PVnormalizedChi2;                            //!
-  TBranch *b_PVx;                                         //!
-  TBranch *b_PVy;                                         //!
-  TBranch *b_PVz;                                         //!
-  TBranch *b_HLT_TriggerName;                             //!
+  TBranch *b_IsData;                                  //!
+  TBranch *b_nTotal;                                  //!
+  TBranch *b_runNum;                                  //!
+  TBranch *b_evtNum;                                  //!
+  TBranch *b_lumiBlock;                               //!
+  TBranch *b_Rho;                                     //!
+  TBranch *b_RhoNC;                                   //!
+  TBranch *b_nPV;                                     //!
+  TBranch *b_L1PrefireReweight_Central;               //!
+  TBranch *b_L1PrefireReweight_Up;                    //!
+  TBranch *b_L1PrefireReweight_Down;                  //!
+  TBranch *b_Flag_goodVertices;                       //!
+  TBranch *b_Flag_globalSuperTightHalo2016Filter;     //!
+  TBranch *b_Flag_HBHENoiseFilter;                    //!
+  TBranch *b_Flag_HBHENoiseIsoFilter;                 //!
+  TBranch *b_Flag_EcalDeadCellTriggerPrimitiveFilter; //!
+  TBranch *b_Flag_BadPFMuonFilter;                    //!
+  TBranch *b_Flag_BadPFMuonDzFilter;                  //!
+  TBranch *b_Flag_BadChargedCandidateFilter;          //!
+  TBranch *b_Flag_eeBadScFilter;                      //!
+  TBranch *b_Flag_ecalBadCalibFilter;                 //!
+  TBranch *b_PVtrackSize;                             //!
+  TBranch *b_PVchi2;                                  //!
+  TBranch *b_PVndof;                                  //!
+  TBranch *b_PVnormalizedChi2;                        //!
+  TBranch *b_PVx;                                     //!
+  TBranch *b_PVy;                                     //!
+  TBranch *b_PVz;                                     //!
+  TBranch *b_HLT_TriggerName;                         //!
+  TBranch *b_genTtbarId;
   TBranch *b_jet_pt;                                      //!
   TBranch *b_jet_eta;                                     //!
   TBranch *b_jet_phi;                                     //!

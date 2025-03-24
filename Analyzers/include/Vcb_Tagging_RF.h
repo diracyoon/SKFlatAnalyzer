@@ -33,6 +33,7 @@ protected:
   TString channel_name;
 
   bool run_debug;
+  bool run_no_jes_breakdown;
 
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
@@ -191,6 +192,41 @@ protected:
   float sf_el_reco;
 
   float sf_sl_trig;
+
+  vector<float> vec_jet_pt;
+  vector<float> vec_jet_eta;
+  vector<int> vec_jet_flavor;
+  vector<float> vec_jet_bvsc;
+  vector<float> vec_jet_cvsb;
+  vector<float> vec_jet_cvsl;
+  
+  // vector<float> vec_sf_c_tag;
+  // vector<float> vec_sf_c_tag_down_extrap;
+  // vector<float> vec_sf_c_tag_up_extrap;
+  // vector<float> vec_sf_c_tag_down_interp;
+  // vector<float> vec_sf_c_tag_up_interp;
+  // vector<float> vec_sf_c_tag_down_lhe_scale_muf;
+  // vector<float> vec_sf_c_tag_up_lhe_scale_muf;
+  // vector<float> vec_sf_c_tag_down_lhe_scale_mur;
+  // vector<float> vec_sf_c_tag_up_lhe_scale_mur;
+  // vector<float> vec_sf_c_tag_down_ps_fsr_fixed;
+  // vector<float> vec_sf_c_tag_up_ps_fsr_fixed;
+  // vector<float> vec_sf_c_tag_down_ps_isr_fixed;
+  // vector<float> vec_sf_c_tag_up_ps_isr_fixed;
+  // vector<float> vec_sf_c_tag_down_pu;
+  // vector<float> vec_sf_c_tag_up_pu;
+  // vector<float> vec_sf_c_tag_down_stat;
+  // vector<float> vec_sf_c_tag_up_stat;
+  // vector<float> vec_sf_c_tag_down_xsec_brunc_dyjets_b;
+  // vector<float> vec_sf_c_tag_up_xsec_brunc_dyjets_b;
+  // vector<float> vec_sf_c_tag_down_xsec_brunc_dyjets_c;
+  // vector<float> vec_sf_c_tag_up_xsec_brunc_dyjets_c;
+  // vector<float> vec_sf_c_tag_down_xsec_brunc_wjets_c;
+  // vector<float> vec_sf_c_tag_up_xsec_brunc_wjets_c;
+  // vector<float> vec_sf_c_tag_down_jer;
+  // vector<float> vec_sf_c_tag_up_jer;
+  // vector<float> vec_sf_c_tag_down_jes_total;
+  // vector<float> vec_sf_c_tag_up_jes_total;
 
   map<TString, TTree *> map_result_tree;
 

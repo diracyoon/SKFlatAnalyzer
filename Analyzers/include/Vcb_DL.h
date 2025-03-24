@@ -35,6 +35,7 @@ protected:
   TString channel_name;
   
   bool run_syst;
+  bool run_no_jes_breakdown;
 
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
@@ -232,6 +233,10 @@ protected:
   float weight_sl_trig_mu_up;
 
   float weight_top_pt;
+
+  vector<float> vec_jet_pt;
+  vector<float> vec_jet_eta;
+  vector<int> vec_jet_flavor;
 
   map<TString, TTree *> map_result_tree;
 

@@ -4,14 +4,16 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void SKFlatNtuple::Loop(){
+void SKFlatNtuple::Loop()
+{
 
   Long64_t nentries = fChain->GetEntries();
-  //nentries = 1000;
-  //cout << "nentries = " << nentries << endl;
+  // nentries = 1000;
+  // cout << "nentries = " << nentries << endl;
 
-  if(MaxEvent>0){
-    nentries = std::min(nentries,MaxEvent);
+  if (MaxEvent > 0)
+  {
+    nentries = std::min(nentries, MaxEvent);
   }
 
   //==== Before starting the loop, print setups
@@ -27,43 +29,46 @@ void SKFlatNtuple::Loop(){
   cout << "[SKFlatNtuple::Loop] sumW = " << sumW << endl;
   cout << "[SKFlatNtuple::Loop] sumSign = " << sumSign << endl;
   cout << "[SKFlatNtuple::Loop] Userflags = {" << endl;
-  for(unsigned int i=0; i<Userflags.size(); i++){
+  for (unsigned int i = 0; i < Userflags.size(); i++)
+  {
     cout << "[SKFlatNtuple::Loop]   \"" << Userflags.at(i) << "\"," << endl;
   }
   cout << "[SKFlatNtuple::Loop] }" << endl;
 
-
   cout << "[SKFlatNtuple::Loop] Event Loop Started " << printcurrunttime() << endl;
 
-  for(Long64_t jentry=0; jentry<nentries;jentry++){
+  for (Long64_t jentry = 0; jentry < nentries; jentry++)
+  {
 
-    if(jentry<NSkipEvent){
-      //cout << "[SKFlatNtuple::Loop] Skipping " << jentry << "'th event" << endl;
-      //exit(EXIT_FAILURE);
+    if (jentry < NSkipEvent)
+    {
+      // cout << "[SKFlatNtuple::Loop] Skipping " << jentry << "'th event" << endl;
+      // exit(EXIT_FAILURE);
       continue;
     }
 
-    if(jentry%LogEvery==0){
-      cout << "[SKFlatNtuple::Loop RUNNING] " << jentry << "/" << nentries << " ("<<100.*jentry/nentries<<" %) @ " << printcurrunttime() << endl;
+    if (jentry % LogEvery == 0)
+    {
+      cout << "[SKFlatNtuple::Loop RUNNING] " << jentry << "/" << nentries << " (" << 100. * jentry / nentries << " %) @ " << printcurrunttime() << endl;
     }
 
-    if(fChain->GetEntry(jentry)<0) exit(EIO);
+    if (fChain->GetEntry(jentry) < 0)
+      exit(EIO);
 
     beginEvent();
     executeEvent();
     endEvent();
 
-    //std::cout << jentry << " :" << muon_pt->size() << std::endl;
-
+    // std::cout << jentry << " :" << muon_pt->size() << std::endl;
   }
 
   cout << "[SKFlatNtuple::Loop] LOOP END " << printcurrunttime() << endl;
-
 }
 
 //==== Basic
 
-SKFlatNtuple::SKFlatNtuple(){
+SKFlatNtuple::SKFlatNtuple()
+{
   MaxEvent = -1;
   NSkipEvent = 0;
   LogEvery = 1000;
@@ -80,32 +85,38 @@ SKFlatNtuple::SKFlatNtuple(){
 
 SKFlatNtuple::~SKFlatNtuple()
 {
-  if (!fChain) return;
+  if (!fChain)
+    return;
   delete fChain->GetCurrentFile();
   cout << "[SKFlatNtuple::~SKFlatNtuple] JOB FINISHED " << printcurrunttime() << endl;
 }
 
 Int_t SKFlatNtuple::GetEntry(Long64_t entry)
 {
-// Read contents of entry.
-  if (!fChain) return 0;
+  // Read contents of entry.
+  if (!fChain)
+    return 0;
   return fChain->GetEntry(entry);
 }
 
 TString SKFlatNtuple::GetEraShort() const
 {
-  if(DataEra=="2016preVFP") return "2016a";
-  else if(DataEra=="2016postVFP") return "2016b";
-  else return DataEra;
+  if (DataEra == "2016preVFP")
+    return "2016a";
+  else if (DataEra == "2016postVFP")
+    return "2016b";
+  else
+    return DataEra;
 }
 
 void SKFlatNtuple::Init()
 {
 
-  //std::cout << "[SKFlatNtuple::Init] called" << std::endl; 
+  // std::cout << "[SKFlatNtuple::Init] called" << std::endl;
 
   // Set object pointer
   HLT_TriggerName = 0;
+
   jet_pt = 0;
   jet_eta = 0;
   jet_phi = 0;
@@ -115,7 +126,7 @@ void SKFlatNtuple::Init()
   jet_hadronFlavour = 0;
   jet_GenHFHadronMatcher_flavour = 0;
   jet_GenHFHadronMatcher_origin = 0;
-  //jet_GenHFHadronMatcher_top_weak_decay = 0;
+  jet_GenHFHadronMatcher_top_weak_decay = 0;
   jet_DeepCSV = 0;
   jet_DeepCSV_CvsL = 0;
   jet_DeepCSV_CvsB = 0;
@@ -284,8 +295,8 @@ void SKFlatNtuple::Init()
   muon_TypeBit = 0;
   muon_IDBit = 0;
   muon_ishighpt = 0;
-  muon_ismedium_hip =0;
-  muon_ismedium_nohip =0;
+  muon_ismedium_hip = 0;
+  muon_ismedium_nohip = 0;
   muon_dB = 0;
   muon_phi = 0;
   muon_eta = 0;
@@ -472,6 +483,11 @@ void SKFlatNtuple::Init()
   fChain->SetBranchAddress("vertex_Y", &vertex_Y, &b_PVy);
   fChain->SetBranchAddress("vertex_Z", &vertex_Z, &b_PVz);
   fChain->SetBranchAddress("HLT_TriggerName", &HLT_TriggerName, &b_HLT_TriggerName);
+  fChain->SetBranchAddress("HLT_TriggerName", &HLT_TriggerName, &b_HLT_TriggerName);
+  if (!IsDATA)
+  {
+    fChain->SetBranchAddress("genTtbarId", &genTtbarId, &b_genTtbarId);
+  }
   fChain->SetBranchAddress("jet_pt", &jet_pt, &b_jet_pt);
   fChain->SetBranchAddress("jet_eta", &jet_eta, &b_jet_eta);
   fChain->SetBranchAddress("jet_phi", &jet_phi, &b_jet_phi);
@@ -479,9 +495,12 @@ void SKFlatNtuple::Init()
   fChain->SetBranchAddress("jet_area", &jet_area, &b_jet_area);
   fChain->SetBranchAddress("jet_partonFlavour", &jet_partonFlavour, &b_jet_partonFlavour);
   fChain->SetBranchAddress("jet_hadronFlavour", &jet_hadronFlavour, &b_jet_hadronFlavour);
-  fChain->SetBranchAddress("jet_GenHFHadronMatcher_flavour", &jet_GenHFHadronMatcher_flavour, &b_jet_GenHFHadronMatcher_flavour);
-  fChain->SetBranchAddress("jet_GenHFHadronMatcher_origin", &jet_GenHFHadronMatcher_origin, &b_jet_GenHFHadronMatcher_origin);
-  //fChain->SetBranchAddress("jet_GenHFHadronMatcher_top_weak_decay", &jet_GenHFHadronMatcher_top_weak_decay, &b_jet_GenHFHadronMatcher_top_weak_decay);
+  if (!IsDATA)
+  {
+    fChain->SetBranchAddress("jet_GenHFHadronMatcher_flavour", &jet_GenHFHadronMatcher_flavour, &b_jet_GenHFHadronMatcher_flavour);
+    fChain->SetBranchAddress("jet_GenHFHadronMatcher_origin", &jet_GenHFHadronMatcher_origin, &b_jet_GenHFHadronMatcher_origin);
+    fChain->SetBranchAddress("jet_GenHFHadronMatcher_top_weak_decay", &jet_GenHFHadronMatcher_top_weak_decay, &b_jet_GenHFHadronMatcher_top_weak_decay);
+  }
   fChain->SetBranchAddress("jet_DeepCSV", &jet_DeepCSV, &b_jet_DeepCSV);
   fChain->SetBranchAddress("jet_DeepCSV_CvsL", &jet_DeepCSV_CvsL, &b_jet_DeepCSV_CvsL);
   fChain->SetBranchAddress("jet_DeepCSV_CvsB", &jet_DeepCSV_CvsB, &b_jet_DeepCSV_CvsB);
@@ -735,55 +754,65 @@ void SKFlatNtuple::Init()
   fChain->SetBranchAddress("muon_simMatchQuality", &muon_simMatchQuality, &b_muon_simMatchQuality);
   fChain->SetBranchAddress("muon_pathbits", &muon_pathbits, &b_muon_pathbits);
   fChain->SetBranchAddress("muon_filterbits", &muon_filterbits, &b_muon_filterbits);
-  if(!IsDATA){
-  fChain->SetBranchAddress("L1PrefireReweight_Central", &L1PrefireReweight_Central, &b_L1PrefireReweight_Central);
-  fChain->SetBranchAddress("L1PrefireReweight_Up", &L1PrefireReweight_Up, &b_L1PrefireReweight_Up);
-  fChain->SetBranchAddress("L1PrefireReweight_Down", &L1PrefireReweight_Down, &b_L1PrefireReweight_Down);
-  fChain->SetBranchAddress("LHE_Px", &LHE_Px, &b_LHE_Px);
-  fChain->SetBranchAddress("LHE_Py", &LHE_Py, &b_LHE_Py);
-  fChain->SetBranchAddress("LHE_Pz", &LHE_Pz, &b_LHE_Pz);
-  fChain->SetBranchAddress("LHE_E", &LHE_E, &b_LHE_E);
-  fChain->SetBranchAddress("LHE_Status", &LHE_Status, &b_LHE_Status);
-  fChain->SetBranchAddress("LHE_ID", &LHE_ID, &b_LHE_ID);
-  if(fChain->GetBranch("weight_AlphaS")) fChain->SetBranchAddress("weight_AlphaS", &weight_AlphaS, &b_weight_AlphaS);
-  if(fChain->GetBranch("weight_PDF")) fChain->SetBranchAddress("weight_PDF", &weight_PDF, &b_weight_PDF);
-  if(fChain->GetBranch("weight_Scale")) fChain->SetBranchAddress("weight_Scale", &weight_Scale, &b_weight_Scale);
-  if(fChain->GetBranch("weight_PSSyst")) fChain->SetBranchAddress("weight_PSSyst", &weight_PSSyst, &b_weight_PSSyst);
-  if(fChain->GetBranch("weight_alpsfact")) fChain->SetBranchAddress("weight_alpsfact", &weight_alpsfact, &b_weight_alpsfact);
-  if(fChain->GetBranch("weight_largeptscales")) fChain->SetBranchAddress("weight_largeptscales", &weight_largeptscales, &b_weight_largeptscales);
-  if(fChain->GetBranch("weight_q0")) fChain->SetBranchAddress("weight_q0", &weight_q0, &b_weight_q0);
-  if(fChain->GetBranch("weight_sthw2")) fChain->SetBranchAddress("weight_sthw2", &weight_sthw2, &b_weight_sthw2);
-  if(fChain->GetBranch("weight_kHtt")) fChain->SetBranchAddress("weight_kHtt", &weight_kHtt, &b_weight_kHtt);
-  fChain->SetBranchAddress("gen_phi", &gen_phi, &b_gen_phi);
-  fChain->SetBranchAddress("gen_eta", &gen_eta, &b_gen_eta);
-  fChain->SetBranchAddress("gen_pt", &gen_pt, &b_gen_pt);
-  fChain->SetBranchAddress("gen_mass", &gen_mass, &b_gen_mass);
-  fChain->SetBranchAddress("gen_charge", &gen_charge, &b_gen_charge);
-  fChain->SetBranchAddress("gen_mother_index", &gen_mother_index, &b_gen_mother_index);
-  fChain->SetBranchAddress("gen_status", &gen_status, &b_gen_status);
-  fChain->SetBranchAddress("gen_PID", &gen_PID, &b_gen_PID);
-  fChain->SetBranchAddress("gen_isPrompt", &gen_isPrompt, &b_gen_isPrompt);
-  fChain->SetBranchAddress("gen_isPromptFinalState", &gen_isPromptFinalState, &b_gen_isPromptFinalState);
-  fChain->SetBranchAddress("gen_isTauDecayProduct", &gen_isTauDecayProduct, &b_gen_isTauDecayProduct);
-  fChain->SetBranchAddress("gen_isPromptTauDecayProduct", &gen_isPromptTauDecayProduct, &b_gen_isPromptTauDecayProduct);
-  fChain->SetBranchAddress("gen_isDirectPromptTauDecayProductFinalState", &gen_isDirectPromptTauDecayProductFinalState, &b_gen_isDirectPromptTauDecayProductFinalState);
-  fChain->SetBranchAddress("gen_isHardProcess", &gen_isHardProcess, &b_gen_isHardProcess);
-  fChain->SetBranchAddress("gen_isLastCopy", &gen_isLastCopy, &b_gen_isLastCopy);
-  fChain->SetBranchAddress("gen_isLastCopyBeforeFSR", &gen_isLastCopyBeforeFSR, &b_gen_isLastCopyBeforeFSR);
-  fChain->SetBranchAddress("gen_isPromptDecayed", &gen_isPromptDecayed, &b_gen_isPromptDecayed);
-  fChain->SetBranchAddress("gen_isDecayedLeptonHadron", &gen_isDecayedLeptonHadron, &b_gen_isDecayedLeptonHadron);
-  fChain->SetBranchAddress("gen_fromHardProcessBeforeFSR", &gen_fromHardProcessBeforeFSR, &b_gen_fromHardProcessBeforeFSR);
-  fChain->SetBranchAddress("gen_fromHardProcessDecayed", &gen_fromHardProcessDecayed, &b_gen_fromHardProcessDecayed);
-  fChain->SetBranchAddress("gen_fromHardProcessFinalState", &gen_fromHardProcessFinalState, &b_gen_fromHardProcessFinalState);
-  fChain->SetBranchAddress("gen_isMostlyLikePythia6Status3", &gen_isMostlyLikePythia6Status3, &b_gen_isMostlyLikePythia6Status3);
-  fChain->SetBranchAddress("gen_weight", &gen_weight, &b_gen_weight);
-  fChain->SetBranchAddress("genWeight_Q", &genWeight_Q, &b_genWeight_Q);
-  fChain->SetBranchAddress("genWeight_X1", &genWeight_X1, &b_genWeight_X1);
-  fChain->SetBranchAddress("genWeight_X2", &genWeight_X2, &b_genWeight_X2);
-  fChain->SetBranchAddress("genWeight_id1", &genWeight_id1, &b_genWeight_id1);
-  fChain->SetBranchAddress("genWeight_id2", &genWeight_id2, &b_genWeight_id2);
-  fChain->SetBranchAddress("genWeight_alphaQCD", &genWeight_alphaQCD, &b_genWeight_alphaQCD);
-  fChain->SetBranchAddress("genWeight_alphaQED", &genWeight_alphaQED, &b_genWeight_alphaQED);
+  if (!IsDATA)
+  {
+    fChain->SetBranchAddress("L1PrefireReweight_Central", &L1PrefireReweight_Central, &b_L1PrefireReweight_Central);
+    fChain->SetBranchAddress("L1PrefireReweight_Up", &L1PrefireReweight_Up, &b_L1PrefireReweight_Up);
+    fChain->SetBranchAddress("L1PrefireReweight_Down", &L1PrefireReweight_Down, &b_L1PrefireReweight_Down);
+    fChain->SetBranchAddress("LHE_Px", &LHE_Px, &b_LHE_Px);
+    fChain->SetBranchAddress("LHE_Py", &LHE_Py, &b_LHE_Py);
+    fChain->SetBranchAddress("LHE_Pz", &LHE_Pz, &b_LHE_Pz);
+    fChain->SetBranchAddress("LHE_E", &LHE_E, &b_LHE_E);
+    fChain->SetBranchAddress("LHE_Status", &LHE_Status, &b_LHE_Status);
+    fChain->SetBranchAddress("LHE_ID", &LHE_ID, &b_LHE_ID);
+    if (fChain->GetBranch("weight_AlphaS"))
+      fChain->SetBranchAddress("weight_AlphaS", &weight_AlphaS, &b_weight_AlphaS);
+    if (fChain->GetBranch("weight_PDF"))
+      fChain->SetBranchAddress("weight_PDF", &weight_PDF, &b_weight_PDF);
+    if (fChain->GetBranch("weight_Scale"))
+      fChain->SetBranchAddress("weight_Scale", &weight_Scale, &b_weight_Scale);
+    if (fChain->GetBranch("weight_PSSyst"))
+      fChain->SetBranchAddress("weight_PSSyst", &weight_PSSyst, &b_weight_PSSyst);
+    if (fChain->GetBranch("weight_alpsfact"))
+      fChain->SetBranchAddress("weight_alpsfact", &weight_alpsfact, &b_weight_alpsfact);
+    if (fChain->GetBranch("weight_largeptscales"))
+      fChain->SetBranchAddress("weight_largeptscales", &weight_largeptscales, &b_weight_largeptscales);
+    if (fChain->GetBranch("weight_q0"))
+      fChain->SetBranchAddress("weight_q0", &weight_q0, &b_weight_q0);
+    if (fChain->GetBranch("weight_sthw2"))
+      fChain->SetBranchAddress("weight_sthw2", &weight_sthw2, &b_weight_sthw2);
+    if (fChain->GetBranch("weight_kHtt"))
+      fChain->SetBranchAddress("weight_kHtt", &weight_kHtt, &b_weight_kHtt);
+    fChain->SetBranchAddress("gen_phi", &gen_phi, &b_gen_phi);
+    fChain->SetBranchAddress("gen_eta", &gen_eta, &b_gen_eta);
+    fChain->SetBranchAddress("gen_pt", &gen_pt, &b_gen_pt);
+    fChain->SetBranchAddress("gen_mass", &gen_mass, &b_gen_mass);
+    fChain->SetBranchAddress("gen_charge", &gen_charge, &b_gen_charge);
+    fChain->SetBranchAddress("gen_mother_index", &gen_mother_index, &b_gen_mother_index);
+    fChain->SetBranchAddress("gen_status", &gen_status, &b_gen_status);
+    fChain->SetBranchAddress("gen_PID", &gen_PID, &b_gen_PID);
+    fChain->SetBranchAddress("gen_isPrompt", &gen_isPrompt, &b_gen_isPrompt);
+    fChain->SetBranchAddress("gen_isPromptFinalState", &gen_isPromptFinalState, &b_gen_isPromptFinalState);
+    fChain->SetBranchAddress("gen_isTauDecayProduct", &gen_isTauDecayProduct, &b_gen_isTauDecayProduct);
+    fChain->SetBranchAddress("gen_isPromptTauDecayProduct", &gen_isPromptTauDecayProduct, &b_gen_isPromptTauDecayProduct);
+    fChain->SetBranchAddress("gen_isDirectPromptTauDecayProductFinalState", &gen_isDirectPromptTauDecayProductFinalState, &b_gen_isDirectPromptTauDecayProductFinalState);
+    fChain->SetBranchAddress("gen_isHardProcess", &gen_isHardProcess, &b_gen_isHardProcess);
+    fChain->SetBranchAddress("gen_isLastCopy", &gen_isLastCopy, &b_gen_isLastCopy);
+    fChain->SetBranchAddress("gen_isLastCopyBeforeFSR", &gen_isLastCopyBeforeFSR, &b_gen_isLastCopyBeforeFSR);
+    fChain->SetBranchAddress("gen_isPromptDecayed", &gen_isPromptDecayed, &b_gen_isPromptDecayed);
+    fChain->SetBranchAddress("gen_isDecayedLeptonHadron", &gen_isDecayedLeptonHadron, &b_gen_isDecayedLeptonHadron);
+    fChain->SetBranchAddress("gen_fromHardProcessBeforeFSR", &gen_fromHardProcessBeforeFSR, &b_gen_fromHardProcessBeforeFSR);
+    fChain->SetBranchAddress("gen_fromHardProcessDecayed", &gen_fromHardProcessDecayed, &b_gen_fromHardProcessDecayed);
+    fChain->SetBranchAddress("gen_fromHardProcessFinalState", &gen_fromHardProcessFinalState, &b_gen_fromHardProcessFinalState);
+    fChain->SetBranchAddress("gen_isMostlyLikePythia6Status3", &gen_isMostlyLikePythia6Status3, &b_gen_isMostlyLikePythia6Status3);
+    fChain->SetBranchAddress("gen_weight", &gen_weight, &b_gen_weight);
+    fChain->SetBranchAddress("genWeight_Q", &genWeight_Q, &b_genWeight_Q);
+    fChain->SetBranchAddress("genWeight_X1", &genWeight_X1, &b_genWeight_X1);
+    fChain->SetBranchAddress("genWeight_X2", &genWeight_X2, &b_genWeight_X2);
+    fChain->SetBranchAddress("genWeight_id1", &genWeight_id1, &b_genWeight_id1);
+    fChain->SetBranchAddress("genWeight_id2", &genWeight_id2, &b_genWeight_id2);
+    fChain->SetBranchAddress("genWeight_alphaQCD", &genWeight_alphaQCD, &b_genWeight_alphaQCD);
+    fChain->SetBranchAddress("genWeight_alphaQED", &genWeight_alphaQED, &b_genWeight_alphaQED);
   }
   fChain->SetBranchAddress("photon_Energy", &photon_Energy, &b_photon_Energy);
   fChain->SetBranchAddress("photon_EnergyUnCorr", &photon_EnergyUnCorr, &b_photon_EnergyUnCorr);
@@ -843,17 +872,4 @@ void SKFlatNtuple::Init()
   fChain->SetBranchAddress("tau_charge", &tau_charge, &b_tau_charge);
   fChain->SetBranchAddress("tau_IDBit", &tau_IDBit, &b_tau_IDBit);
   fChain->SetBranchAddress("tau_idDecayModeNewDMs", &tau_idDecayModeNewDMs, &b_tau_idDecayModeNewDMs);
-
 }
-
-
-
-
-
-
-
-
-
-
-
-

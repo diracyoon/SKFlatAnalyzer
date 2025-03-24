@@ -2,6 +2,7 @@
 #define __XYMETCorrection_withUL17andUL18andUL16_H__
 
 #include "TObject.h"
+#include "TMath.h"
 
 class XYMETCorrection_withUL17andUL18andUL16 : public TObject
 {

@@ -460,7 +460,6 @@ std::vector<Photon> AnalyzerCore::GetPhotons(TString id, double ptmin, double fe
 
 std::vector<Jet> AnalyzerCore::GetAllJets()
 {
-
   std::vector<Jet> out;
   for (unsigned int i = 0; i < jet_pt->size(); i++)
   {
@@ -474,9 +473,10 @@ std::vector<Jet> AnalyzerCore::GetAllJets()
       jet *= jet_smearedRes->at(i);
       jet.SetResShift(jet_smearedResUp->at(i) / jet_smearedRes->at(i), jet_smearedResDown->at(i) / jet_smearedRes->at(i));
       jet.SetGenFlavours(jet_partonFlavour->at(i), jet_hadronFlavour->at(i));
-      jet.SetGenHFHadronMatcher(jet_GenHFHadronMatcher_flavour->at(i), jet_GenHFHadronMatcher_origin->at(i));
-      // jet.SetGenHFHadronMatcher(jet_GenHFHadronMatcher_flavour->at(i), jet_GenHFHadronMatcher_origin->at(i), jet_GenHFHadronMatcher_top_weak_decay->at(i));
+      // jet.SetGenHFHadronMatcher(jet_GenHFHadronMatcher_flavour->at(i), jet_GenHFHadronMatcher_origin->at(i));
+      jet.SetGenHFHadronMatcher(jet_GenHFHadronMatcher_flavour->at(i), jet_GenHFHadronMatcher_origin->at(i), jet_GenHFHadronMatcher_top_weak_decay->at(i));
     }
+
     jet.SetBJetNNCorrection(jet_bJetNN_corr->at(i), jet_bJetNN_res->at(i));
     jet.SetCJetNNCorrection(jet_cJetNN_corr->at(i), jet_cJetNN_res->at(i));
     jet.SetCharge(jet_charge->at(i));
@@ -492,6 +492,7 @@ std::vector<Jet> AnalyzerCore::GetAllJets()
         jet_DeepJet_CvsL->at(i),
         jet_DeepJet_CvsB->at(i),
     };
+
     jet.SetTaggerResults(tvs);
     jet.SetEnergyFractions(jet_chargedHadronEnergyFraction->at(i), jet_neutralHadronEnergyFraction->at(i), jet_neutralEmEnergyFraction->at(i), jet_chargedEmEnergyFraction->at(i), jet_muonEnergyFraction->at(i));
     jet.SetMultiplicities(jet_chargedMultiplicity->at(i), jet_neutralMultiplicity->at(i));
@@ -1595,6 +1596,7 @@ double AnalyzerCore::MCweight(bool usesign, bool norm_1invpb) const
 
   if (IsDATA)
     return 1.;
+
   double weight = gen_weight;
 
   // MiNNLO sample has some events with unphysically large weight
@@ -1606,6 +1608,7 @@ double AnalyzerCore::MCweight(bool usesign, bool norm_1invpb) const
       weight = weight > 0. ? maxweight : -1.0 * maxweight;
     }
   }
+
   // Sherpa sample needs weighted events
   if (MCSample.Contains("WJets") && MCSample.Contains("Sherpa"))
   {
@@ -1628,6 +1631,7 @@ double AnalyzerCore::MCweight(bool usesign, bool norm_1invpb) const
     else
       weight *= xsec / sumW;
   }
+
   return weight;
 }
 
@@ -1982,11 +1986,10 @@ std::vector<Jet> AnalyzerCore::JetsAwayFromFatJet(const std::vector<Jet> &jets, 
 
 std::vector<Jet> AnalyzerCore::JetsVetoLeptonInside(const std::vector<Jet> &jets, const std::vector<Electron> &els, const std::vector<Muon> &mus, double dR)
 {
-
   std::vector<Jet> out;
+
   for (unsigned int i = 0; i < jets.size(); i++)
   {
-
     bool HasLeptonInside = false;
 
     for (unsigned int j = 0; j < els.size(); j++)
@@ -1997,6 +2000,7 @@ std::vector<Jet> AnalyzerCore::JetsVetoLeptonInside(const std::vector<Jet> &jets
         break;
       }
     }
+
     if (HasLeptonInside)
       continue;
 
@@ -2008,6 +2012,7 @@ std::vector<Jet> AnalyzerCore::JetsVetoLeptonInside(const std::vector<Jet> &jets
         break;
       }
     }
+
     if (HasLeptonInside)
       continue;
 

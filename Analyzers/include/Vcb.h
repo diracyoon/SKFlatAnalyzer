@@ -4,14 +4,14 @@
 #include <TMVA/Reader.h>
 #include <TDirectory.h>
 
-#include "AnalyzerCore.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
-
-#include "TKinFitterDriver.h"
-#include "Vcb_Def.h"
-#include "Results_Container.h"
-
 #include "XYMETCorrection_withUL17andUL18andUL16.h"
+
+#include "AnalyzerCore.h"
+
+#include "Vcb_Def.h"
+#include "TKinFitterDriver.h"
+#include "Results_Container.h"
 
 using namespace std;
 using namespace TMath;
@@ -35,6 +35,7 @@ protected:
 
   bool run_debug;
   bool run_permutation_tree;
+  bool run_new_training_tree;
   // bool run_hf_contamination_tree;
   bool run_chi;
   bool run_result;
@@ -43,6 +44,8 @@ protected:
   bool run_template_truth;
   bool rm_wm_constraint;
   bool rm_bjet_energy_reg_nn;
+
+  bool run_no_jes_breakdown;
 
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
@@ -60,6 +63,8 @@ protected:
     KF_Pass
   } Cut_Flow;
   int n_cut_flow = Cut_Flow::KF_Pass + 1;
+
+  int era_index;
 
   vector<TString> vec_mu_id;
   vector<TString> vec_mu_id_sf_key;
@@ -103,6 +108,15 @@ protected:
   vector<Jet> vec_sel_jet;
   vector<Jet> vec_sel_jet_match;
 
+  vector<float> vec_jet_pt;
+  vector<float> vec_jet_eta;
+  vector<float> vec_jet_phi;
+  vector<float> vec_jet_mass;
+  vector<float> vec_jet_bvsc;
+  vector<float> vec_jet_cvsb;
+  vector<float> vec_jet_cvsl;
+  vector<int> vec_jet_flavor;
+
   vector<bool> vec_btag;
   vector<bool> vec_btag_match;
   vector<bool> vec_ctag;
@@ -114,6 +128,7 @@ protected:
 
   int index_matched_jet[4];
   int index_matched_jet_match[4];
+  vector<int> vec_index_matched_jet;
 
   AnalyzerParameter param;
 
@@ -131,6 +146,7 @@ protected:
   float lepton_pt;
   float lepton_pt_uncorr;
   float lepton_eta;
+  float lepton_phi;
   float lepton_rel_iso;
 
   int n_sel_jet;
@@ -426,6 +442,7 @@ protected:
   TTree *template_tree[5];
   TTree *template_truth_tree[5];
 
+  map<TString, TTree *> map_new_training_tree;
   map<TString, TTree *> map_permutation_tree;
   map<TString, TTree *> map_result_tree;
 
@@ -445,16 +462,18 @@ protected:
   void Index_Converter(const vector<Jet> &vec_sel_jet, const vector<Jet> &vec_sel_jet_match, const int index_matched_jet_match[4], int index_matched_jet[4]);
   // void Index_Restorer(int& index_had_t_b, int& index_w_u, int& index_w_d, int& index_lep_t_b);
   void KF_Ambiguity_Remover(const vector<Jet> &vec_sel_jet, const int index_matched_jet[4]);
-  //void Make_HF_Contamination_Tree();
+  // void Make_HF_Contamination_Tree();
+  void Make_New_Training_Tree();
   void Make_Permutation_Tree();
   void Make_Result_Tree(AnalyzerParameter &param);
   void Make_Template_Tree();
   void Make_Template_Truth_Tree();
   Gen Neutrino(const vector<Gen> &vec_gen);
   Particle Rebalance_Met();
-  //void Set_HF_Contamination_Tree();
+  // void Set_HF_Contamination_Tree();
+  void Set_New_Training_Tree();
   void Set_Permutation_Tree();
-  //void Set_Reader_HF_Contamination();
+  // void Set_Reader_HF_Contamination();
   void Set_Reader_Swapper();
   int Set_ABCD_Region();
   void Set_Region();

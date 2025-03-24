@@ -118,6 +118,16 @@ void Vcb_TTHF_MC_Cross_Section::executeEventFromParameter(AnalyzerParameter para
   /* No Selection */
   //////////////////
 
+  int index;
+  if (53 <= genTtbarId % 100 && genTtbarId % 100 <= 55)
+    index = 2;
+  else if (43 <= genTtbarId % 100 && genTtbarId % 100 <= 45)
+    index = 1;
+  else
+    index = 0;
+
+  FillHist("No_Baseline_Selection_Gen", index, weight, 3, 0, 3);
+
   vec_this_muon = vec_muon;
   vec_this_electron = vec_electron;
   vec_this_jet = vec_jet;
@@ -138,15 +148,15 @@ void Vcb_TTHF_MC_Cross_Section::executeEventFromParameter(AnalyzerParameter para
     int flavour = jet.GenHFHadronMatcherFlavour();
     int origin = jet.GenHFHadronMatcherOrigin();
 
-    if (flavour == 5 && abs(origin) == 21)
-      // if (flavour == 5 && abs(origin) != 6 && abs(origin) != 24)
+    // if (flavour == 5 && abs(origin) == 21)
+    if (flavour == 5 && abs(origin) != 6 && abs(origin) != 24)
       chk_b++;
-    else if (flavour == 4 && abs(origin) == 21)
-      // else if (flavour == 4 && abs(origin) != 6 && abs(origin) != 24)
+    // else if (flavour == 4 && abs(origin) == 21)
+    else if (flavour == 4 && abs(origin) != 6 && abs(origin) != 24)
       chk_c++;
-  }
+  } // for (unsigned int i = 0; i < vec_this_jet.size(); i++)
 
-  int index;
+  // int index;
   if (1 < chk_b)
     index = 2;
   else if (chk_b == 0 && 1 < chk_c)
@@ -154,7 +164,7 @@ void Vcb_TTHF_MC_Cross_Section::executeEventFromParameter(AnalyzerParameter para
   else
     index = 0;
 
-  FillHist("No_Baseline_Selection_Two", index, weight, 3, 0, 3);
+  FillHist("No_Baseline_Selection_Two_Reco", index, weight, 3, 0, 3);
 
   if (chk_b)
     index = 2;
@@ -163,7 +173,7 @@ void Vcb_TTHF_MC_Cross_Section::executeEventFromParameter(AnalyzerParameter para
   else
     index = 0;
 
-  FillHist("No_Baseline_Selection_One", index, weight, 3, 0, 3);
+  FillHist("No_Baseline_Selection_One_Reco", index, weight, 3, 0, 3);
 
   ////////////////////////
   /* Baseline Selection */
@@ -300,10 +310,7 @@ void Vcb_TTHF_MC_Cross_Section::executeEventFromParameter(AnalyzerParameter para
 
     // if (flavour == 5 && abs(origin) == 21)
     if (flavour == 5 && abs(origin) != 6 && abs(origin) != 24)
-    {
       chk_b++;
-      break;
-    }
     // else if (flavour == 4 && abs(origin) == 21)
     else if (flavour == 4 && abs(origin) != 6 && abs(origin) != 24)
       chk_c++;
