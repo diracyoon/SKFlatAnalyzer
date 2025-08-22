@@ -33,9 +33,11 @@ protected:
   bool run_me;
   bool run_mm;
   TString channel_name;
-  
+
   bool run_syst;
   bool run_no_jes_breakdown;
+
+  // bool run_dd = true; // data driven
 
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel

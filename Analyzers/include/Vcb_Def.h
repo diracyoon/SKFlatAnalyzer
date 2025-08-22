@@ -20,7 +20,7 @@ const float ELECTRON_ETA = 2.5;
 
 const float JET_PT = 25.;
 const float JET_PT_DL = 25.;
-const float JET_ETA = 2.4;
+const float JET_ETA = 2.5;
 const float JET_ETA_2016 = 2.4;
 const float DR_LEPTON_VETO = 0.4;
 

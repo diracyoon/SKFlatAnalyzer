@@ -1,5 +1,5 @@
-#ifndef __Vcb_h__
-#define __Vcb_h__
+#ifndef __Vcb_Cal_TF_h__
+#define __Vcb_Cal_TF_h__
 
 #include <TMVA/Reader.h>
 #include <TDirectory.h>
@@ -10,17 +10,15 @@
 #include "AnalyzerCore.h"
 
 #include "Vcb_Def.h"
-#include "TKinFitterDriver.h"
-#include "Results_Container.h"
 
 using namespace std;
 using namespace TMath;
 
-class Vcb : public AnalyzerCore
+class Vcb_Cal_TF : public AnalyzerCore
 {
 public:
-  Vcb();
-  ~Vcb();
+  Vcb_Cal_TF();
+  ~Vcb_Cal_TF();
 
   void initializeAnalyzer();
   void executeEvent();
@@ -34,19 +32,7 @@ protected:
   TString channel_name;
 
   bool run_debug;
-  bool run_permutation_tree;
-  bool run_new_training_tree;
-  // bool run_hf_contamination_tree;
-  bool run_chi;
-  bool run_result;
   bool run_syst;
-  bool run_template;
-  bool run_template_truth;
-  bool rm_wm_constraint;
-  bool rm_bjet_energy_reg_nn;
-
-  bool run_dd = true; // data driven
-
   bool run_no_jes_breakdown;
 
   vector<TString> vec_channel;
@@ -92,8 +78,6 @@ protected:
   JME::JetResolution jet_resolution;
   JME::JetResolutionScaleFactor jet_resolution_sf;
 
-  TKinFitterDriver *fitter_driver;
-
   vector<Muon> vec_muon;
   vector<Electron> vec_electron;
   vector<Lepton> vec_lepton;
@@ -102,10 +86,6 @@ protected:
   vector<Muon> vec_this_muon;
   vector<Electron> vec_this_electron;
   vector<Jet> vec_this_jet;
-
-  /* vector<Muon> vec_sel_muon; */
-  /* vector<Muon> vec_muon_veto; */
-  /* vector<Electron> vec_electron_veto; */
 
   vector<Jet> vec_sel_jet;
   vector<Jet> vec_sel_jet_match;
@@ -185,106 +165,6 @@ protected:
   float bvsc_subleading_jet;
   float cvsb_subleading_jet;
   float cvsl_subleading_jet;
-
-  float pt_had_t_b;
-  float pt_w_u;
-  float pt_w_d;
-  float pt_lep_t_b;
-
-  float pt_raw_had_t_b;
-  float pt_raw_w_u;
-  float pt_raw_w_d;
-  float pt_raw_lep_t_b;
-
-  float eta_had_t_b;
-  float eta_w_u;
-  float eta_w_d;
-  float eta_lep_t_b;
-
-  float pt_had_w;
-  float pt_had_t;
-  float pt_lep_w;
-  float pt_lep_t;
-  float pt_tt;
-
-  float del_phi_w_u_w_d;
-  float del_phi_had_w_had_t_b;
-  float del_phi_lep_neu;
-  float del_phi_lep_w_lep_t_b;
-  float del_phi_had_t_lep_t;
-
-  float del_eta_w_u_w_d;
-  float del_eta_had_w_had_t_b;
-  float del_eta_lep_neu;
-  float del_eta_lep_w_lep_t_b;
-  float del_eta_had_t_lep_t;
-
-  float del_r_w_u_w_d;
-  float del_r_had_w_had_t_b;
-  float del_r_lep_neu;
-  float del_r_lep_w_lep_t_b;
-  float del_r_had_t_lep_t;
-
-  float theta_w_u_w_d;
-  float theta_had_w_had_t_b;
-  float theta_lep_neu;
-  float theta_lep_w_lep_t_b;
-  float theta_had_t_lep_t;
-
-  float theta_w_u_b;
-  float theta_w_d_b;
-  float theta_p_had_w;
-  float theta_b_b;
-  float theta_c_c;
-
-  float w_u_b_bscore;
-  float w_d_b_bscore;
-
-  float m_had_t;
-  float m_had_w;
-  float m_lep_t;
-  float m_lep_w;
-
-  float m_w_u_b;
-  float m_w_d_b;
-
-  float had_t_mass;
-  float had_w_mass;
-  float lep_t_mass;
-  float lep_t_partial_mass;
-
-  float chi2_jet_had_t_b;
-  float chi2_jet_w_u;
-  float chi2_jet_w_d;
-  float chi2_jet_lep_t_b;
-
-  float chi2_jet_extra;
-
-  float chi2_constraint_had_t;
-  float chi2_constraint_had_w;
-  float chi2_constraint_lep_t;
-  float chi2_constraint_lep_w;
-
-  float chi2;
-
-  float had_w_charge_abs;
-  float had_t_charge_abs;
-  float lep_t_charge_abs;
-  float tt_charge;
-
-  float gen_neutrino_px;
-  float gen_neutrino_py;
-  float gen_neutrino_pz;
-  float met_px;
-  float met_py;
-  float met_rebalance_px;
-  float met_rebalance_py;
-  float neutrino_pz_sol;
-  float neutrino_pz_sol_unrebal;
-  float neutrino_p;
-  float mt_gen;
-  float mt_met;
-  float mt_met_rebalance;
 
   bool chk_real_neu_pz;
   float nu_pz_sol_0;
@@ -394,101 +274,26 @@ protected:
 
   TString region;
 
-  // TTree *permutation_tree_correct;
-  // TTree *permutation_tree_wrong;
-
-  // TTree *hf_contamination_tree_correct;
-  // TTree *hf_contamination_tree_wrong;
-
-  float best_chi2;
-  float best_mva_score_pre;
-  float best_mva_score;
   float ht;
   float mt;
-  float mva_hf_score;
-
-  bool chk_hf_contamination;
-
-  TTree *reco_eval_tree_correct;
-  TTree *reco_eval_tree_wrong;
 
   int decay_mode;
-
   vector<int> vec_gen_hf_flavour;
   vector<int> vec_gen_hf_origin;
 
   vector<int> vec_sel_gen_hf_flavour;
   vector<int> vec_sel_gen_hf_origin;
 
-  float bvsc_had_t_b;
-  float cvsb_had_t_b;
-  float cvsl_had_t_b;
-
-  float bvsc_w_u;
-  float cvsb_w_u;
-  float cvsl_w_u;
-  float m_w_u;
-
-  float bvsc_w_d;
-  float cvsb_w_d;
-  float cvsl_w_d;
-  float m_w_d;
-
-  float bvsc_lep_t_b;
-  float cvsb_lep_t_b;
-  float cvsl_lep_t_b;
-
-  float least_m_bb;
-  float least_dr_bb;
-
-  int swapped_truth;
-  int swapped_mva;
-
   XYMETCorrection_withUL17andUL18andUL16 xy_met_correction;
 
-  TTree *template_tree[5];
-  TTree *template_truth_tree[5];
-
-  map<TString, TTree *> map_new_training_tree;
-  map<TString, TTree *> map_permutation_tree;
   map<TString, TTree *> map_result_tree;
 
-  TMVA::Reader *reader_hf_contamination_lessthantwo;
-  TMVA::Reader *reader_hf_contamination_morethantwo;
-
-  float Calculate_HT(const vector<Jet> &vec_jet);
   float Calculate_Mt(const Particle &lepton, const float &neu_px, const float &neu_py);
   void Clear();
   int Chk_Included(const int index_matched_jet[4]);
-  bool Compare_Jet(const Jet &jet0, const Jet &jet1);
-  int Compare_Jet_Pair(const Jet jet0[2], const Jet jet1[2]);
-  bool Gen_Match_Lepton(const Lepton &lepton, const vector<Gen> &vec_gen, bool &chk_gentau_conta);
-  void Gen_Match_Residual(const vector<Jet> &vec_jet, const vector<Gen> &vec_gen, const vector<int> &vec_hf_flavour, const vector<int> &vec_hf_origin, const vector<float> &vec_jer, int index_gen[4], int index_matched_jet[4], bool surely_matched[4], float dr_return[4]);
-  void Gen_Match_TT(const vector<Jet> &vec_jet, const vector<Gen> &vec_gen, const vector<int> &vec_hf_flavour, const vector<int> &vec_hf_origin, const vector<float> &vec_jer, int index_gen[4], int index_matched_jet[4], bool surely_matched[4], float dr_return[4]);
-  int Gen_Match_W(const vector<Jet> &vec_jet, const vector<Gen> &vec_gen, const vector<int> &vec_hf_flavour, const vector<int> &vec_hf_origin, const vector<float> &vec_jer, int index_gen[2], int index_matched_jet[2], bool surely_matched[2], float dr_return[2]);
-  void Index_Converter(const vector<Jet> &vec_sel_jet, const vector<Jet> &vec_sel_jet_match, const int index_matched_jet_match[4], int index_matched_jet[4]);
-  // void Index_Restorer(int& index_had_t_b, int& index_w_u, int& index_w_d, int& index_lep_t_b);
-  void KF_Ambiguity_Remover(const vector<Jet> &vec_sel_jet, const int index_matched_jet[4]);
-  // void Make_HF_Contamination_Tree();
-  float Least_DR_bb();
-  float Least_M_bb();
-  void Make_New_Training_Tree();
-  void Make_Permutation_Tree();
   void Make_Result_Tree(AnalyzerParameter &param);
-  void Make_Template_Tree();
-  void Make_Template_Truth_Tree();
-  Gen Neutrino(const vector<Gen> &vec_gen);
   Particle Rebalance_Met();
-  // void Set_HF_Contamination_Tree();
-  void Set_New_Training_Tree();
-  void Set_Permutation_Tree();
-  // void Set_Reader_HF_Contamination();
-  void Set_Reader_Swapper();
-  int Set_ABCD_Region();
-  void Set_Region();
   void Set_Result_Tree();
-  void Set_Template_Truth_Tree();
-  void Sol_Neutrino_Pz(const Particle &lepton, const Particle &met, float neutrino_pz_sol[2]);
 };
 
-#endif /* __Vcb_h__ */
+#endif /* __Vcb_Cal_TF_h__ */

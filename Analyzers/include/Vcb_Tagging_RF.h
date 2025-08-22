@@ -35,6 +35,8 @@ protected:
   bool run_debug;
   bool run_no_jes_breakdown;
 
+  bool run_dd = true; // data driven
+
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
   TDirectory ***dir_syst;   // channel, syst
@@ -86,6 +88,8 @@ protected:
   float lepton_pt_uncorr;
   float lepton_eta;
   float lepton_rel_iso;
+
+  unsigned int electron_id_bit;
 
   int n_sel_jet;
   int n_b_jet;

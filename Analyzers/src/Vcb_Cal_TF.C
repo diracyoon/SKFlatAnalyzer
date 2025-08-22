@@ -1,15 +1,16 @@
-#include "Vcb_Tagging_RF.h"
+#include "Vcb_Cal_TF.h"
 
 //////////
 
-Vcb_Tagging_RF::Vcb_Tagging_RF()
+Vcb_Cal_TF::Vcb_Cal_TF()
 {
-} // Vcb_Tagging_RF::Vcb_Tagging_RF()
+} // Vcb_Cal_TF::Vcb_Cal_TF()
 
 //////////
 
-Vcb_Tagging_RF::~Vcb_Tagging_RF()
+Vcb_Cal_TF::~Vcb_Cal_TF()
 {
+
   for (unsigned int i = 0; i < vec_channel.size(); i++)
   {
     for (unsigned int j = 0; j < vec_syst_type.size(); j++)
@@ -20,29 +21,32 @@ Vcb_Tagging_RF::~Vcb_Tagging_RF()
       map_result_tree[vec_channel[i] + param.GetSystType()]->Write();
     }
   }
-} // Vcb_Tagging_RF::~Vcb_Tagging_RF()
+
+  outfile->Close();
+
+} // Vcb_Cal_TF::~Vcb_Cal_TF()
 
 //////////
 
-void Vcb_Tagging_RF::initializeAnalyzer()
+void Vcb_Cal_TF::initializeAnalyzer()
 {
-  // run_mu_ch = HasFlag("RunMu");
-  // cout << "[Vcb_Tagging_RF::initializeAnalyzer] RunMu = " << run_mu_ch << endl;
+  run_debug = HasFlag("RunDebug");
+  cout << "[Vcb_Cal_TF::initializeAnalyzer] RunDebug = " << run_debug << endl;
 
-  // run_el_ch = HasFlag("RunEl");
-  // cout << "[Vcb_Tagging_RF::initializeAnalyzer] RunEl = " << run_el_ch << endl;
-
-  // if (run_mu_ch == run_el_ch)
-  // {
-  //   cout << "One of RunMu or RunEl should be set." << endl;
-  //   exit(1);
-  // }
+  run_syst = HasFlag("RunSyst");
+  cout << "[Vcb_Cal_TF::initializeAnalyzer] RunSyst = " << run_syst << endl;
 
   run_no_jes_breakdown = HasFlag("RunNoJESBreakdown");
-  cout << "[Vcb::initializeAnalyzer] RunNoJESBreakdown" << run_no_jes_breakdown << endl;
+  cout << "[Vcb_Cal_TF::initializeAnalyzer] RunNoJESBreakdown" << run_no_jes_breakdown << endl;
 
-  run_debug = HasFlag("RunDebug");
-  cout << "[Vcb_Tagging_RF::initializeAnalyzer] RunDebug = " << run_debug << endl;
+  if (DataEra == "2016preVFP")
+    era_index = 0;
+  else if (DataEra == "2016postVFP")
+    era_index = 1;
+  else if (DataEra == "2017")
+    era_index = 2;
+  else if (DataEra == "2018")
+    era_index = 3;
 
   // set sigle lepton trigger
   if (DataYear == 2016)
@@ -54,7 +58,7 @@ void Vcb_Tagging_RF::initializeAnalyzer()
     vec_el_trig.push_back("HLT_Ele27_WPTight_Gsf_v");
     el_trig = "Ele27";
     el_trig_safe_pt_cut = 30.;
-  }
+  } // if (DataYear == 2016)
   else if (DataYear == 2017)
   {
     vec_mu_trig.push_back("HLT_IsoMu27_v");
@@ -62,8 +66,8 @@ void Vcb_Tagging_RF::initializeAnalyzer()
     mu_trig_safe_pt_cut = 30.;
 
     // vec_el_trig.push_back("HLT_Ele35_WPTight_Gsf_v");
-    // el_trig = "Ele35";
-    // el_trig_safe_pt_cut = 37.;
+    // sl_trig = "Ele35";
+    // sl_trig_safe_pt_cut = 37.;
 
     vec_el_trig.push_back("HLT_Ele32_WPTight_Gsf_L1DoubleEG_");
     el_trig = "Ele32";
@@ -83,12 +87,12 @@ void Vcb_Tagging_RF::initializeAnalyzer()
     std::runtime_error("No trigger configuration for year");
 
   for (auto &trigger_name : vec_mu_trig)
-    cout << "[Vcb::initializeAnalyzer] Single Muon Trigger Name = " << trigger_name << endl;
-  cout << "[Vcb::initializeAnalyzer] Single Muon Trigger Safe Pt Cut = " << mu_trig_safe_pt_cut << endl;
+    cout << "[Vcb_Cal_TF::initializeAnalyzer] Single Muon Trigger Name = " << trigger_name << endl;
+  cout << "[Vcb_Cal_TF::initializeAnalyzer] Single Muon Trigger Safe Pt Cut = " << mu_trig_safe_pt_cut << endl;
 
   for (auto &trigger_name : vec_el_trig)
-    cout << "[Vcb::initializeAnalyzer] Single Electron Trigger Name = " << trigger_name << endl;
-  cout << "[Vcb::initializeAnalyzer] Single Electron Trigger Safe Pt Cut = " << el_trig_safe_pt_cut << endl;
+    cout << "[Vcb_Cal_TF::initializeAnalyzer] Single Electron Trigger Name = " << trigger_name << endl;
+  cout << "[Vcb_Cal_TF::initializeAnalyzer] Single Electron Trigger Safe Pt Cut = " << el_trig_safe_pt_cut << endl;
 
   // Jet Tagging Parameters
   if (run_debug)
@@ -103,11 +107,31 @@ void Vcb_Tagging_RF::initializeAnalyzer()
   }
   mcCorr->SetJetTaggingParameters(vec_jet_tagging_para);
 
+  // PDF syst
+  if (run_syst)
+  {
+    LHAPDFHandler LHAPDFHandler_Prod;
+    // LHAPDFHandler_Prod.CentralPDFName = "NNPDF31_nnlo_hessian_pdfas";
+    LHAPDFHandler_Prod.CentralPDFName = "NNPDF31_nnlo_as_0118_mc_hessian_pdfas";
+    LHAPDFHandler_Prod.init();
+
+    LHAPDFHandler LHAPDFHandler_New;
+    LHAPDFHandler_New.CentralPDFName = "NNPDF31_nlo_hessian_pdfas";
+    LHAPDFHandler_New.ErrorSetMember_Start = 1;
+    LHAPDFHandler_New.ErrorSetMember_End = 100;
+    LHAPDFHandler_New.AlphaSMember_Down = 101;
+    LHAPDFHandler_New.AlphaSMember_Up = 102;
+    LHAPDFHandler_New.init();
+
+    pdfReweight->SetProdPDF(LHAPDFHandler_Prod.PDFCentral);
+    pdfReweight->SetNewPDF(LHAPDFHandler_New.PDFCentral);
+    pdfReweight->SetNewPDFErrorSet(LHAPDFHandler_New.PDFErrorSet);
+    pdfReweight->SetNewPDFAlphaS(LHAPDFHandler_New.PDFAlphaSDown, LHAPDFHandler_New.PDFAlphaSUp);
+  }
+
   vec_channel = {"Mu", "El"};
 
-  if (MCSample.Contains("mtop17") || MCSample.Contains("CP5") || MCSample.Contains("hdamp"))
-    vec_syst_type = {AnalyzerParameter::Central};
-  else
+  if (!IsDATA && run_syst)
   {
     vec_syst_type = {AnalyzerParameter::Central,
                      AnalyzerParameter::UnclusteredEnergyDown, AnalyzerParameter::UnclusteredEnergyUp,
@@ -180,7 +204,17 @@ void Vcb_Tagging_RF::initializeAnalyzer()
         vec_syst_type.push_back(AnalyzerParameter::JetEnRelativeSample2018Up);
       } // else if (to_string(GetYear()) == "2018")
     } // if(!run_no_jes_breakdown)
-  } // else
+
+    // if (run_el_ch)
+    // {
+    //   vec_syst_type.push_back(AnalyzerParameter::ElectronEnDown);
+    //   vec_syst_type.push_back(AnalyzerParameter::ElectronEnUp);
+    //   vec_syst_type.push_back(AnalyzerParameter::ElectronResDown);
+    //   vec_syst_type.push_back(AnalyzerParameter::ElectronResUp);
+    // }
+  }
+  else
+    vec_syst_type = {AnalyzerParameter::Central};
 
   // to make output dir
   dir_channel = new TDirectory *[vec_channel.size()];
@@ -196,16 +230,17 @@ void Vcb_Tagging_RF::initializeAnalyzer()
 
       dir_syst[i][j] = dir_channel[i]->mkdir(param.GetSystType());
     } // loop over syst
+
   } // loop over channel
 
   Set_Result_Tree();
 
   return;
-} // void Vcb_Tagging_RF::initializeAnalyzer()
+} // void Vcb_Cal_TF::initializeAnalyzer()
 
 //////////
 
-void Vcb_Tagging_RF::executeEvent()
+void Vcb_Cal_TF::executeEvent()
 {
   // Apply Jet Veto Map
   if (IsEventJetMapVetoed())
@@ -234,28 +269,16 @@ void Vcb_Tagging_RF::executeEvent()
 
     for (unsigned int j = 0; j < vec_syst_type.size(); j++)
     {
+      // setup setting
       param.Clear();
 
-      if (run_dd)
-      {
-        param.Muon_Tight_ID = "POGTightWithLooseIso";
-        // param.Muon_Loose_ID = "POGLooseWithLooseIso";
-        param.Muon_Jet_Cleaning_ID = "POGTightWithTightIso";
+      param.Muon_Tight_ID = "POGTightWithLooseIso";
+      // param.Muon_Loose_ID = "POGLooseWithLooseIso";
+      param.Muon_Jet_Cleaning_ID = "POGTightWithTightIso";
 
-        param.Electron_Tight_ID = "passMVAID_iso_WP90";
-        // param.Electron_Loose_ID = "passMVAID_iso_WP90";
-        param.Electron_Jet_Cleaning_ID = "passMVAID_iso_WP80";
-      }
-      else
-      {
-        param.Muon_Tight_ID = "POGTightWithTightIso";
-        // param.Muon_Loose_ID = "POGLooseWithLooseIso";
-        param.Muon_Jet_Cleaning_ID = "POGTightWithTightIso";
-
-        param.Electron_Tight_ID = "passMVAID_iso_WP80";
-        // param.Electron_Loose_ID = "passMVAID_iso_WP90";
-        param.Electron_Jet_Cleaning_ID = "passMVAID_iso_WP80";
-      }
+      param.Electron_Tight_ID = "passMVAID_iso_WP90";
+      // param.Electron_Loose_ID = "passMVAID_iso_WP90";
+      param.Electron_Jet_Cleaning_ID = "passMVAID_iso_WP80";
 
       param.Muon_ID_SF_Key = "NUM_TightID_DEN_TrackerMuons";
       param.Muon_ISO_SF_Key = "NUM_TightRelIso_DEN_TightIDandIPCut";
@@ -266,81 +289,78 @@ void Vcb_Tagging_RF::executeEvent()
 
       param.syst_ = vec_syst_type.at(j);
 
-      param.Name = param.GetSystType();
-
-      vec_gen_hf_flavour.clear();
-      vec_gen_hf_origin.clear();
-
-      vec_sel_gen_hf_flavour.clear();
-      vec_sel_gen_hf_origin.clear();
+      param.Name = channel_name + "/" + param.GetSystType();
 
       executeEventFromParameter(param);
     } // loop over syst
   } // loop over channel
 
   return;
-} // void Vcb_Tagging_RF::executeEvent()
+} // void Vcb_Cal_TF::executeEvent()
 
 //////////
 
-void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
+void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
 {
+  // cout << param.Name << endl;
+
   Clear();
 
   Event ev = GetEvent();
 
-  if (!IsData)
+  if (!IsDATA)
   {
-    vec_gen = GetGens();
+    vector<Gen> vec_gen = GetGens();
+
     decay_mode = Get_W_Decay_Mode(vec_gen);
-
-    // TTBB or TTCC check using vec_jet
-    for (unsigned int i = 0; i < vec_jet.size(); i++)
-    {
-      Jet jet = vec_jet[i];
-
-      // acceptance cut
-      if (jet.Pt() < JET_PT)
-        continue;
-
-      float jet_eta_cut = JET_ETA;
-      if (DataYear == 2016)
-        jet_eta_cut = JET_ETA_2016;
-
-      if (jet_eta_cut < abs(jet.Eta()))
-        continue;
-
-      vec_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
-      vec_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
-    }
 
     // lumi
     weight_lumi = ev.GetTriggerLumi("Full");
+
     weight *= weight_lumi;
 
     // MCweight +1 or -1
     weight_mc = MCweight();
+
     weight *= weight_mc;
+
+    // PDF
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
+    {
+      weight_pdf_alternative = GetPDFReweight();
+      for (int i = 0; i < 100; i++)
+        weight_pdf_error_set[i] = GetPDFReweight(i);
+      weight_pdf_as_up = GetPDFReweight("As_Up");
+      weight_pdf_as_down = GetPDFReweight("As_Down");
+    }
 
     // pileup reweight
     weight_pileup = mcCorr->GetPileUpWeight_Json(nPileUp, 0);
-    if (param.syst_ == AnalyzerParameter::Central)
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
     {
       weight_pileup_down = mcCorr->GetPileUpWeight_Json(nPileUp, -1);
       weight_pileup_up = mcCorr->GetPileUpWeight_Json(nPileUp, +1);
     }
+
     weight *= weight_pileup;
 
     // L1 prefire
     weight_prefire = GetPrefireWeight(0);
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
+    {
+      weight_prefire_down = GetPrefireWeight(-1);
+      weight_prefire_up = GetPrefireWeight(+1);
+    }
+
     weight *= weight_prefire;
 
     // Top Pt reweight
     weight_top_pt = mcCorr->GetTopPtReweight(vec_gen);
+
     weight *= weight_top_pt;
 
     // Scale Variation
-    if (param.syst_ == AnalyzerParameter::Central)
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
     {
       weight_scale_variation_1 = GetScaleVariation(1);
       weight_scale_variation_2 = GetScaleVariation(2);
@@ -348,11 +368,16 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       weight_scale_variation_4 = GetScaleVariation(4);
       weight_scale_variation_6 = GetScaleVariation(6);
       weight_scale_variation_8 = GetScaleVariation(8);
+
+      // PS Reweight
+      Get_Reweight_PS(weight_ps);
     }
 
-    // PS Reweight
-    Get_Reweight_PS(weight_ps);
-  }
+    // if(!TMath::Finite(lumi_weight)) cout << lumi_weight << endl;
+    // if(!TMath::Finite(mc_weight)) cout << mc_weight << endl;
+    // if(!TMath::Finite(pileup_weight)) cout << pileup_weight << endl;
+    // if(!TMath::Finite(prefire_weight)) cout << prefire_weight << endl;
+  } // if (!IsDATA)
 
   // met filter
   if (!PassMETFilter())
@@ -363,11 +388,18 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   vec_this_electron = vec_electron;
   vec_this_jet = vec_jet;
 
-  met = ev.GetMETVector("PUPPI");
-  pair<double, double> met_corr = xy_met_correction.METXYCorr_Met_MetPhi(met.Pt(), met.Phi(), run, to_string(DataYear), !IsData, nPV, true, true);
+  if (param.syst_ == AnalyzerParameter::UnclusteredEnergyDown)
+    Met_Syst_Unclustered(met, -1);
+  else if (param.syst_ == AnalyzerParameter::UnclusteredEnergyUp)
+    Met_Syst_Unclustered(met, 1);
+  else
+    met = ev.GetMETVector("PUPPI");
+
+  // xy correction
+  pair<double, double> met_corr = xy_met_correction.METXYCorr_Met_MetPhi(met.Pt(), met.Phi(), run, to_string(DataYear), !IsDATA, nPV, true, true);
 
   // Particle met = ev.GetMETVector("PF");
-  // pair<double, double> met_corr = xy_met_correction.METXYCorr_Met_MetPhi(met.Pt(), met.Phi(), run, to_string(DataYear), !IsData, nPV, true, false);
+  // pair<double, double> met_corr = xy_met_correction.METXYCorr_Met_MetPhi(met.Pt(), met.Phi(), run, to_string(DataYear), !IsDATA, nPV, true, false);
   // cout << met.Pt() << " " << met_corr.first << " " << met.Phi() << " " << met_corr.second << endl;
 
   met.SetPtEtaPhiE(met_corr.first, 0, met_corr.second, met_corr.first);
@@ -375,6 +407,30 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   //////////////////////
   /* syst for objects */
   //////////////////////
+
+  // if(param.syst_ == AnalyzerParameter::MuonEnUp) vec_this_muon = ScaleMuons(vec_this_muon, +1);
+  // if(param.syst_ == AnalyzerParameter::MuonEnDown) vec_this_muon = ScaleMuons(vec_this_muon, -1);
+  if (param.syst_ == AnalyzerParameter::ElectronEnDown)
+  {
+    vec_this_electron = ScaleElectrons(vec_this_electron, -1);
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::ElectronEnUp)
+  {
+    vec_this_electron = ScaleElectrons(vec_this_electron, +1);
+    met = Rebalance_Met();
+  }
+
+  if (param.syst_ == AnalyzerParameter::ElectronResDown)
+  {
+    vec_this_electron = SmearElectrons(vec_this_electron, -1);
+    met = Rebalance_Met();
+  }
+  else if (param.syst_ == AnalyzerParameter::ElectronResUp)
+  {
+    vec_this_electron = SmearElectrons(vec_this_electron, +1);
+    met = Rebalance_Met();
+  }
 
   if (param.syst_ == AnalyzerParameter::JetResDown)
   {
@@ -615,7 +671,7 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   /*Setup Objects*/
   /////////////////
 
-  // for lepton
+  // for lepton selection
   vector<Muon> vec_sel_muon = SelectMuons(vec_this_muon, param.Muon_Tight_ID, mu_trig_safe_pt_cut, MUON_ETA);
   vector<Electron> vec_sel_electron = SelectElectrons(vec_this_electron, param.Electron_Tight_ID, el_trig_safe_pt_cut, ELECTRON_ETA);
 
@@ -639,18 +695,12 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   vec_sel_jet = JetsVetoLeptonInside(vec_sel_jet, vec_electron_jet_cleaning, vec_muon_jet_cleaning, DR_LEPTON_VETO);
   n_sel_jet = vec_sel_jet.size();
 
+  // HEM veto
+  weight_hem_veto = Weight_HEM_Veto(vec_sel_jet);
+  weight *= weight_hem_veto;
+
   // sort jet as pt ordering
   sort(vec_sel_jet.begin(), vec_sel_jet.end(), PtComparing);
-
-  for (unsigned int i = 0; i < vec_sel_jet.size(); i++)
-  {
-    Jet jet = vec_sel_jet[i];
-
-    vec_sel_gen_hf_flavour.push_back(jet.GenHFHadronMatcherFlavour());
-    vec_sel_gen_hf_origin.push_back(jet.GenHFHadronMatcherOrigin());
-  }
-
-  weight_hem_veto = Weight_HEM_Veto(vec_sel_jet);
 
   // single lepton trigger
   if (run_mu_ch)
@@ -664,17 +714,28 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       return;
   }
 
-  if (!IsData)
+  if (!IsDATA)
   {
-    // SF for muon trigger effi
     if (run_mu_ch)
-      sf_sl_trig = mcCorr->MuonTrigger_SF("POGTight", mu_trig, vec_sel_muon, 0);
-
-    // SF for electron trigger effi
+    {
+      // SF for muon trigger effi
+      weight_sl_trig = mcCorr->MuonTrigger_SF("POGTight", mu_trig, vec_sel_muon, 0);
+      if (run_syst)
+      {
+        weight_sl_trig_down = mcCorr->MuonTrigger_SF("POGTight", mu_trig, vec_sel_muon, -1);
+        weight_sl_trig_up = mcCorr->MuonTrigger_SF("POGTight", mu_trig, vec_sel_muon, +1);
+      }
+    }
     else if (run_el_ch)
-      sf_sl_trig = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, 0);
-
-    weight *= sf_sl_trig;
+    {
+      weight_sl_trig = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, 0);
+      if (run_syst)
+      {
+        weight_sl_trig_down = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, -1);
+        weight_sl_trig_up = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, +1);
+      }
+    }
+    weight *= weight_sl_trig;
   }
 
   // cut on lepton
@@ -683,10 +744,6 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   {
     if (vec_sel_muon.size() != 1 || vec_sel_electron.size() != 0)
       return;
-    // if (vec_muon_veto.size() != 1)
-    //   return;
-    // if (vec_electron_veto.size() != 0)
-    //   return;
 
     muon = vec_sel_muon.at(0);
     lepton = muon;
@@ -695,10 +752,6 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   {
     if (vec_sel_electron.size() != 1 || vec_sel_muon.size() != 0)
       return;
-    // if (vec_electron_veto.size() != 1)
-    //   return;
-    // if (vec_muon_veto.size() != 0)
-    //   return;
 
     electron = vec_sel_electron.at(0);
     lepton = electron;
@@ -708,10 +761,18 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   if (run_el_ch)
     lepton_pt_uncorr = electron.UncorrPt();
   lepton_eta = lepton.Eta();
+  lepton_phi = lepton.Phi();
+
   lepton_rel_iso = lepton.RelIso();
 
   if (run_el_ch)
+  {
     electron_id_bit = electron.GetIDBit();
+
+    // unsigned int mva_iso_wp80_bit_mask = 1 << 4;
+    // unsigned int mva_iso_wp90_bit_mask = 1 << 5;
+    // cout << electron_id_bit << ", " << ((electron_id_bit & mva_iso_wp80_bit_mask) == mva_iso_wp80_bit_mask) << ", " << ((electron_id_bit & mva_iso_wp90_bit_mask) == mva_iso_wp90_bit_mask) << endl;
+  }
 
   if (run_mu_ch)
   {
@@ -724,50 +785,67 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       return;
   }
 
-  if (!IsData)
+  if (!IsDATA)
   {
     if (run_mu_ch)
     {
       // SF for muon id
-      sf_mu_id = mcCorr->MuonID_SF_Json(param.Muon_ID_SF_Key, muon.Eta(), muon.MiniAODPt(), 0);
-      weight *= sf_mu_id;
+      weight_mu_id = mcCorr->MuonID_SF_Json(param.Muon_ID_SF_Key, muon.Eta(), muon.MiniAODPt(), 0);
+      if (run_syst)
+      {
+        weight_mu_id_down = mcCorr->MuonID_SF_Json(param.Muon_ID_SF_Key, muon.Eta(), muon.MiniAODPt(), -1);
+        weight_mu_id_up = mcCorr->MuonID_SF_Json(param.Muon_ID_SF_Key, muon.Eta(), muon.MiniAODPt(), +1);
+      }
+      weight *= weight_mu_id;
 
       // SF for muon iso
-      sf_mu_iso = mcCorr->MuonISO_SF_Json(param.Muon_ISO_SF_Key, muon.Eta(), muon.MiniAODPt(), 0);
-      weight *= sf_mu_iso;
-
+      weight_mu_iso = mcCorr->MuonISO_SF_Json(param.Muon_ISO_SF_Key, muon.Eta(), muon.MiniAODPt(), 0);
+      if (run_syst)
+      {
+        weight_mu_iso_down = mcCorr->MuonISO_SF_Json(param.Muon_ISO_SF_Key, muon.Eta(), muon.MiniAODPt(), -1);
+        weight_mu_iso_up = mcCorr->MuonISO_SF_Json(param.Muon_ISO_SF_Key, muon.Eta(), muon.MiniAODPt(), +1);
+      }
+      weight *= weight_mu_iso;
       // if(run_debug) cout << "M ISO SF = " << muon.Eta() << "\t" << muon.MiniAODPt() << "\t" << sf_mu_iso_effi << endl;
-    }
+    } // if (run_mu_ch)
     else if (run_el_ch)
     {
       // SF for electron id
-      sf_el_id = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electron.scEta(), electron.UncorrPt(), 0);
-      weight *= sf_el_id;
+      weight_el_id = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electron.scEta(), electron.UncorrPt(), 0);
+      if (run_syst)
+      {
+        weight_el_id_down = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electron.scEta(), electron.UncorrPt(), -1);
+        weight_el_id_up = mcCorr->ElectronID_SF(param.Electron_Tight_ID, electron.scEta(), electron.UncorrPt(), +1);
+      }
+      weight *= weight_el_id;
 
       // SF for electron Reco eff
-      sf_el_reco = mcCorr->ElectronReco_SF(electron.scEta(), electron.UncorrPt(), 0);
-      weight *= sf_el_reco;
-    }
-  }
+      weight_el_reco = mcCorr->ElectronReco_SF(electron.scEta(), electron.UncorrPt(), 0);
+      if (run_syst)
+      {
+        weight_el_reco_down = mcCorr->ElectronReco_SF(electron.scEta(), electron.UncorrPt(), -1);
+        weight_el_reco_up = mcCorr->ElectronReco_SF(electron.scEta(), electron.UncorrPt(), +1);
+      }
+      weight *= weight_el_reco;
+    } // else if (run_el_ch)
+  } //  if (!IsDATA)
 
   // cut on jet
-  // // at least three jets. Three for ABCD region setup
+  // // at least three jets
   if (n_sel_jet < 4)
     return;
 
-  // minimum pt cut on leading jet
-  if (vec_sel_jet[0].Pt() < LEADING_JET_PT)
-    return;
-
-  // minimum pt cut on subleading jet
-  if (vec_sel_jet[1].Pt() < SUBLEADING_JET_PT)
-    return;
-
-  if (!IsData)
+  if (!IsDATA)
   {
     // SF for PUJet Veto
     weight_pujet_veto = mcCorr->PileupJetVeto_Reweight(vec_sel_jet, param.PUJet_Veto_ID, 0);
-    // weight *= weight_pujet_veto;
+    if (run_syst)
+    {
+      weight_pujet_veto_down = mcCorr->PileupJetVeto_Reweight(vec_sel_jet, param.PUJet_Veto_ID, -1);
+      weight_pujet_veto_up = mcCorr->PileupJetVeto_Reweight(vec_sel_jet, param.PUJet_Veto_ID, +1);
+    }
+
+    weight *= weight_pujet_veto;
   }
 
   // n of btag
@@ -825,43 +903,48 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   }
   // cout << "test n_of_ctag" << n_c_jet << endl;
 
-  if (!IsData)
+  if (!IsDATA)
   {
     // // SF for b-tagging old & buggy
-    // if (param.syst_ == AnalyzerParameter::Central)
-    // {
-    //   weight_b_tag = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "central");
-
-    //   weight_b_tag_down_hf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hf");
-    //   weight_b_tag_up_hf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hf");
-
-    //   weight_b_tag_down_lf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lf");
-    //   weight_b_tag_up_lf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lf");
-
-    //   weight_b_tag_down_lfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lfstats1");
-    //   weight_b_tag_up_lfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lfstats1");
-
-    //   weight_b_tag_down_lfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lfstats2");
-    //   weight_b_tag_up_lfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lfstats2");
-
-    //   weight_b_tag_down_cferr1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_cferr1");
-    //   weight_b_tag_up_cferr1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_cferr1");
-
-    //   weight_b_tag_down_cferr2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_cferr2");
-    //   weight_b_tag_up_cferr2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_cferr2");
-
-    //   weight_b_tag_down_hfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hfstats1");
-    //   weight_b_tag_up_hfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hfstats1");
-
-    //   weight_b_tag_down_hfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hfstats2");
-    //   weight_b_tag_up_hfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hfstats2");
-    // }
-    // else if (param.syst_ == AnalyzerParameter::JetEnDown)
-    //   weight_b_tag_down_jes = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_jes");
-    // else if (param.syst_ == AnalyzerParameter::JetEnUp)
-    //   weight_b_tag_up_jes = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_jes");
+    // if (run_debug)
+    //   weight_b_tag = mcCorr->GetBTaggingReweight_1a(vec_sel_jet, vec_jet_tagging_para.at(0));
     // else
-    //   weight_b_tag = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "central");
+    // {
+    //   if (param.syst_ == AnalyzerParameter::Central && run_syst)
+    //   {
+    //     weight_b_tag = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "central");
+
+    //     weight_b_tag_down_hf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hf");
+    //     weight_b_tag_up_hf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hf");
+
+    //     weight_b_tag_down_lf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lf");
+    //     weight_b_tag_up_lf = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lf");
+
+    //     weight_b_tag_down_lfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lfstats1");
+    //     weight_b_tag_up_lfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lfstats1");
+
+    //     weight_b_tag_down_lfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_lfstats2");
+    //     weight_b_tag_up_lfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_lfstats2");
+
+    //     weight_b_tag_down_cferr1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_cferr1");
+    //     weight_b_tag_up_cferr1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_cferr1");
+
+    //     weight_b_tag_down_cferr2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_cferr2");
+    //     weight_b_tag_up_cferr2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_cferr2");
+
+    //     weight_b_tag_down_hfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hfstats1");
+    //     weight_b_tag_up_hfstats1 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hfstats1");
+
+    //     weight_b_tag_down_hfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_hfstats2");
+    //     weight_b_tag_up_hfstats2 = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_hfstats2");
+    //   }
+    //   else if (param.syst_ == AnalyzerParameter::JetEnDown)
+    //     weight_b_tag_down_jes = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "down_jes");
+    //   else if (param.syst_ == AnalyzerParameter::JetEnUp)
+    //     weight_b_tag_up_jes = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "up_jes");
+    //   else
+    //     weight_b_tag = mcCorr->GetBTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(0), "central");
+    // } //   if (run_debug)
 
     if (param.syst_ == AnalyzerParameter::Central)
     {
@@ -945,103 +1028,11 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
     weight *= weight_b_tag;
   }
 
-  if (!IsData)
+  if (!IsDATA)
   {
-    // SF for c-tagging root based
-    // if (param.syst_ == AnalyzerParameter::Central)
-    // {
-    //   weight_c_tag = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "central");
-
-    //   weight_c_tag_down_extrap = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Extrap_Down");
-    //   weight_c_tag_up_extrap = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Extrap_Up");
-
-    //   weight_c_tag_down_interp = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Interp_Down");
-    //   weight_c_tag_up_interp = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Interp_Up");
-
-    //   weight_c_tag_down_lhe_scale_muf = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "LHEScaleWeight_muF_Down");
-    //   weight_c_tag_up_lhe_scale_muf = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "LHEScaleWeight_muF_Up");
-
-    //   weight_c_tag_down_lhe_scale_mur = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "LHEScaleWeight_muR_Down");
-    //   weight_c_tag_up_lhe_scale_mur = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "LHEScaleWeight_muR_Up");
-
-    //   weight_c_tag_down_ps_fsr_fixed = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PSWeightFSRFixed_Down");
-    //   weight_c_tag_up_ps_fsr_fixed = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PSWeightFSRFixed_Up");
-
-    //   weight_c_tag_down_ps_isr_fixed = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PSWeightISRFixed_Down");
-    //   weight_c_tag_up_ps_isr_fixed = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PSWeightISRFixed_Up");
-
-    //   weight_c_tag_down_pu = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PUWeight_Down");
-    //   weight_c_tag_up_pu = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "PUWeight_Up");
-
-    //   weight_c_tag_down_stat = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Stat_Down");
-    //   weight_c_tag_up_stat = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "Stat_Up");
-
-    //   weight_c_tag_down_xsec_brunc_dyjets_b = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_DYJets_b_Down");
-    //   weight_c_tag_up_xsec_brunc_dyjets_b = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_DYJets_b_Up");
-
-    //   weight_c_tag_down_xsec_brunc_dyjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_DYJets_c_Down");
-    //   weight_c_tag_up_xsec_brunc_dyjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_DYJets_c_Up");
-
-    //   weight_c_tag_down_xsec_brunc_wjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_WJets_c_Down");
-    //   weight_c_tag_up_xsec_brunc_wjets_c = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "XSec_BRUnc_WJets_c_Up");
-    // }
-    // else if (param.syst_ == AnalyzerParameter::JetResDown)
-    //   weight_c_tag_down_jer = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jer_Down");
-    // else if (param.syst_ == AnalyzerParameter::JetResUp)
-    //   weight_c_tag_up_jer = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jer_Up");
-    // else if (param.syst_ == AnalyzerParameter::JetEnDown ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsoluteDown ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC1Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC2Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnFlavorQCDDown ||
-    //          param.syst_ == AnalyzerParameter::JetEnHFDown ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeBalDown ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12016Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22016Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2016Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12017Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22017Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2017Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2018Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12018Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22018Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2018Down ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Down)
-    //   weight_c_tag_down_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Down");
-    // else if (param.syst_ == AnalyzerParameter::JetEnUp ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsoluteUp ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC1Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC2Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnFlavorQCDUp ||
-    //          param.syst_ == AnalyzerParameter::JetEnHFUp ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeBalUp ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12016Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22016Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2016Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2016Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12017Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22017Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2017Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2017Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnAbsolute2018Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnBBEC12018Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnEC22018Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnHF2018Up ||
-    //          param.syst_ == AnalyzerParameter::JetEnRelativeSample2018Up)
-    //   weight_c_tag_up_jes_total = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "jesTotal_Up");
-    // else
-    //   weight_c_tag = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "central");
-
     // SF for c-tagging JSON based
     if (param.syst_ == AnalyzerParameter::Central)
     {
-      // float weight_c_tag_root = mcCorr->GetCTaggingReweight_1d(vec_sel_jet, vec_jet_tagging_para.at(1), "central");
       weight_c_tag = mcCorr->GetCTaggingReweight_Json(vec_sel_jet, "central");
 
       weight_c_tag_down_extrap = mcCorr->GetCTaggingReweight_Json(vec_sel_jet, "down_Extrap");
@@ -1131,84 +1122,120 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       weight_c_tag = mcCorr->GetCTaggingReweight_Json(vec_sel_jet, "central");
 
     weight *= weight_c_tag;
-  } // if (!IsData)
-
-  // no b-tag is required
-  // if (n_b_jet < 2)
-  //  return;
-
-  // cut on MET
-  met_pt = met.Pt();
-  // met_phi = met.Phi();
-
-  // if (met_pt < MET_PT)
-  //   return;
-
-  leading_jet_bvsc = vec_sel_jet[0].GetTaggerResult(JetTagging::DeepJet);
-  leading_jet_cvsb = vec_sel_jet[0].GetTaggerResult(JetTagging::DeepJet_CvsB);
-  leading_jet_cvsl = vec_sel_jet[0].GetTaggerResult(JetTagging::DeepJet_CvsL);
-  leading_jet_eta = vec_sel_jet[0].Eta();
-  leading_jet_pt = vec_sel_jet[0].Pt();
-
-  subleading_jet_bvsc = vec_sel_jet[1].GetTaggerResult(JetTagging::DeepJet);
-  subleading_jet_cvsb = vec_sel_jet[1].GetTaggerResult(JetTagging::DeepJet_CvsB);
-  subleading_jet_cvsl = vec_sel_jet[1].GetTaggerResult(JetTagging::DeepJet_CvsL);
-  subleading_jet_eta = vec_sel_jet[1].Eta();
-  subleading_jet_pt = vec_sel_jet[1].Pt();
-
-  ht = Calculate_HT(vec_sel_jet);
-
-  for (auto &jet : vec_sel_jet)
-  {
-    vec_jet_pt.push_back(jet.Pt());
-    vec_jet_eta.push_back(jet.Eta());
-    vec_jet_flavor.push_back(jet.hadronFlavour());
-    vec_jet_bvsc.push_back(jet.GetTaggerResult(JetTagging::DeepJet));
-    vec_jet_cvsb.push_back(jet.GetTaggerResult(JetTagging::DeepJet_CvsB));
-    vec_jet_cvsl.push_back(jet.GetTaggerResult(JetTagging::DeepJet_CvsL));
   }
 
-  map_result_tree[channel_name + param.GetSystType()]->Fill();
+  // at least two b-tag jets
+  if (n_b_jet < 2)
+    return;
+
+  met_pt = met.Pt();
+  met_phi = met.Phi();
+
+  // mt
+  mt = Calculate_Mt(lepton, met.Px(), met.Py());
+
+  Make_Result_Tree(param);
 
   return;
-} // Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
+} // Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
 
 //////////
 
-float Vcb_Tagging_RF::Calculate_HT(const vector<Jet> &jet)
+float Vcb_Cal_TF::Calculate_Mt(const Particle &lepton, const float &neu_px, const float &neu_py)
 {
-  float ht = 0;
-  for (unsigned int i = 0; i < jet.size(); i++)
-  {
-    ht += jet[i].Pt();
-  }
+  float lepton_px = lepton.Px();
+  float lepton_py = lepton.Py();
+  float lepton_et = Sqrt(lepton_px * lepton_px + lepton_py * lepton_py);
 
-  return ht;
-} // float Vcb_Tagging_RF::Calculate_HT(const vector<Jet>& jet)
+  float neu_et = Sqrt(neu_px * neu_px + neu_py * neu_py);
+
+  TVector3 lepton3(lepton_px, lepton_py, 0);
+  TVector3 neu3(neu_px, neu_py, 0);
+
+  float angle = lepton3.Angle(neu3);
+
+  float mt = Sqrt(lepton_et * neu_et * (1 - Cos(angle)));
+
+  return mt;
+} // float Vcb_Cal_TF::Calculate_Mt(const Particle &lepton, const float &neu_px, const float &neu_py)
 
 //////////
 
-void Vcb_Tagging_RF::Clear()
+void Vcb_Cal_TF::Clear()
 {
   weight = 1;
 
   weight_b_tag = 1;
+  weight_b_tag_down_hf = 1;
+  weight_b_tag_up_hf = 1;
+  weight_b_tag_down_lf = 1;
+  weight_b_tag_up_lf = 1;
+  weight_b_tag_down_jes = 1;
+  weight_b_tag_up_jes = 1;
+  weight_b_tag_down_lfstats1 = 1;
+  weight_b_tag_up_lfstats1 = 1;
+  weight_b_tag_down_lfstats2 = 1;
+  weight_b_tag_up_lfstats2 = 1;
+  weight_b_tag_down_cferr1 = 1;
+  weight_b_tag_up_cferr1 = 1;
+  weight_b_tag_down_cferr2 = 1;
+  weight_b_tag_up_cferr2 = 1;
+  weight_b_tag_down_hfstats1 = 1;
+  weight_b_tag_up_hfstats1 = 1;
+  weight_b_tag_down_hfstats2 = 1;
+  weight_b_tag_up_hfstats2 = 1;
+
   weight_c_tag = 1;
+
+  weight_hem_veto = 1;
   weight_lumi = 1;
   weight_mc = 1;
+
+  weight_pdf_alternative = 1;
+  memset(weight_pdf_error_set, 1, sizeof(weight_pdf_error_set));
+  weight_pdf_as_up = 1;
+  weight_pdf_as_down = 1;
+
   weight_pileup = 1;
+  weight_pileup_down = 1;
+  weight_pileup_up = 1;
+
   weight_pujet_veto = 1;
+  weight_pujet_veto_down = 1;
+  weight_pujet_veto_up = 1;
+
   weight_prefire = 1;
+  weight_prefire_down = 1;
+  weight_prefire_up = 1;
+
+  weight_scale_variation_1 = 1;
+  weight_scale_variation_2 = 1;
+  weight_scale_variation_3 = 1;
+  weight_scale_variation_4 = 1;
+  weight_scale_variation_6 = 1;
+  weight_scale_variation_8 = 1;
+
   weight_top_pt = 1;
 
-  sf_mu_id = 1;
-  sf_mu_iso = 1;
-  sf_mu_trig = 1;
+  weight_mu_id = 1;
+  weight_mu_id_down = 1;
+  weight_mu_id_up = 1;
 
-  sf_el_id = 1;
-  sf_el_reco = 1;
+  weight_mu_iso = 1;
+  weight_mu_iso_down = 1;
+  weight_mu_iso_up = 1;
 
-  sf_sl_trig = 1;
+  weight_el_id = 1;
+  weight_el_id_down = 1;
+  weight_el_id_up = 1;
+
+  weight_el_reco = 1;
+  weight_el_reco_down = 1;
+  weight_el_reco_up = 1;
+
+  weight_sl_trig = 1;
+  weight_sl_trig_down = 1;
+  weight_sl_trig_up = 1;
 
   vec_this_muon.clear();
   vec_this_electron.clear();
@@ -1221,18 +1248,50 @@ void Vcb_Tagging_RF::Clear()
 
   vec_jet_pt.clear();
   vec_jet_eta.clear();
-  vec_jet_flavor.clear();
+  vec_jet_phi.clear();
+  vec_jet_mass.clear();
   vec_jet_bvsc.clear();
   vec_jet_cvsb.clear();
   vec_jet_cvsl.clear();
 
+  vec_jet_flavor.clear();
+
   return;
-} // void Vcb_Tagging_RF::Clear()
+} // void Vcb_Cal_TF::Clear()
 
 //////////
 
-Particle Vcb_Tagging_RF::Rebalance_Met()
+int Vcb_Cal_TF::Chk_Included(const int index_matched_jet[4])
 {
+  int result = 0;
+  unsigned int tmp = 1;
+  for (int i = 0; i < 4; ++i)
+  {
+    if (index_matched_jet[i] < 0)
+      result += tmp;
+
+    tmp = tmp << 1;
+  } // for(int i=0; i<4; i++)
+
+  // 0: every gen jet is matched to loose jets wo/ lepton veto and the loose jets passes baseline selection
+  return result;
+} // int Vcb_Cal_TF::Chk_Included(const int index_matched_jet[4])
+
+//////////
+
+void Vcb_Cal_TF::Make_Result_Tree(AnalyzerParameter &param)
+{
+  map_result_tree[channel_name + param.GetSystType()]->Fill();
+
+  return;
+} // void Vcb_Cal_TF::Make_Result_Tree()
+
+//////////
+
+Particle Vcb_Cal_TF::Rebalance_Met()
+{
+  // cout << "before " << met.Pt() << " " << met.Phi() << endl;
+
   Particle met_rebal;
   met_rebal += met;
 
@@ -1252,12 +1311,14 @@ Particle Vcb_Tagging_RF::Rebalance_Met()
   for (auto &jet : vec_this_jet)
     met_rebal -= jet;
 
+  // cout << "after " << met_rebal.Pt() << " " << met_rebal.Phi() << endl;
+
   return met_rebal;
-} // Particle Vcb_Tagging_RF::Rebalance_Met()
+} // Particle Vcb_Cal_TF::Rebalance_Met()
 
 //////////
 
-void Vcb_Tagging_RF::Set_Result_Tree()
+void Vcb_Cal_TF::Set_Result_Tree()
 {
   for (unsigned int i = 0; i < vec_channel.size(); i++)
   {
@@ -1269,16 +1330,7 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       TTree *result_tree = new TTree("Result_Tree", "Result_Tree");
       result_tree->SetDirectory(dir_syst[i][j]);
 
-      result_tree->Branch("sf_mu_id", &sf_mu_id);
-      result_tree->Branch("sf_mu_iso", &sf_mu_iso);
-      result_tree->Branch("sf_mu_trig", &sf_mu_trig);
-
-      result_tree->Branch("sf_el_id", &sf_el_id);
-      result_tree->Branch("sf_el_reco", &sf_el_reco);
-
-      result_tree->Branch("sf_sl_trig", &sf_sl_trig);
-
-      if (syst_type == AnalyzerParameter::Central)
+      if (syst_type == AnalyzerParameter::Central && run_syst)
       {
         result_tree->Branch("weight_b_tag", &weight_b_tag);
         result_tree->Branch("weight_b_tag_down_hf", &weight_b_tag_down_hf);
@@ -1298,56 +1350,14 @@ void Vcb_Tagging_RF::Set_Result_Tree()
         result_tree->Branch("weight_b_tag_down_hfstats2", &weight_b_tag_down_hfstats2);
         result_tree->Branch("weight_b_tag_up_hfstats2", &weight_b_tag_up_hfstats2);
       }
-      else if (syst_type == AnalyzerParameter::JetEnDown ||
-               syst_type == AnalyzerParameter::JetEnAbsoluteDown ||
-               syst_type == AnalyzerParameter::JetEnBBEC1Down ||
-               syst_type == AnalyzerParameter::JetEnEC2Down ||
-               syst_type == AnalyzerParameter::JetEnFlavorQCDDown ||
-               syst_type == AnalyzerParameter::JetEnHFDown ||
-               syst_type == AnalyzerParameter::JetEnRelativeBalDown ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2016Down ||
-               syst_type == AnalyzerParameter::JetEnBBEC12016Down ||
-               syst_type == AnalyzerParameter::JetEnEC22016Down ||
-               syst_type == AnalyzerParameter::JetEnHF2016Down ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2016Down ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2017Down ||
-               syst_type == AnalyzerParameter::JetEnBBEC12017Down ||
-               syst_type == AnalyzerParameter::JetEnEC22017Down ||
-               syst_type == AnalyzerParameter::JetEnHF2017Down ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2017Down ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2018Down ||
-               syst_type == AnalyzerParameter::JetEnBBEC12018Down ||
-               syst_type == AnalyzerParameter::JetEnEC22018Down ||
-               syst_type == AnalyzerParameter::JetEnHF2018Down ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2018Down)
+      else if (syst_type == AnalyzerParameter::JetEnDown)
         result_tree->Branch("weight_b_tag_down_jes", &weight_b_tag_down_jes);
-      else if (syst_type == AnalyzerParameter::JetEnUp ||
-               syst_type == AnalyzerParameter::JetEnAbsoluteUp ||
-               syst_type == AnalyzerParameter::JetEnBBEC1Up ||
-               syst_type == AnalyzerParameter::JetEnEC2Up ||
-               syst_type == AnalyzerParameter::JetEnFlavorQCDUp ||
-               syst_type == AnalyzerParameter::JetEnHFUp ||
-               syst_type == AnalyzerParameter::JetEnRelativeBalUp ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2016Up ||
-               syst_type == AnalyzerParameter::JetEnBBEC12016Up ||
-               syst_type == AnalyzerParameter::JetEnEC22016Up ||
-               syst_type == AnalyzerParameter::JetEnHF2016Up ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2016Up ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2017Up ||
-               syst_type == AnalyzerParameter::JetEnBBEC12017Up ||
-               syst_type == AnalyzerParameter::JetEnEC22017Up ||
-               syst_type == AnalyzerParameter::JetEnHF2017Up ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2017Up ||
-               syst_type == AnalyzerParameter::JetEnAbsolute2018Up ||
-               syst_type == AnalyzerParameter::JetEnBBEC12018Up ||
-               syst_type == AnalyzerParameter::JetEnEC22018Up ||
-               syst_type == AnalyzerParameter::JetEnHF2018Up ||
-               syst_type == AnalyzerParameter::JetEnRelativeSample2018Up)
+      else if (syst_type == AnalyzerParameter::JetEnUp)
         result_tree->Branch("weight_b_tag_up_jes", &weight_b_tag_up_jes);
       else
         result_tree->Branch("weight_b_tag", &weight_b_tag);
 
-      if (syst_type == AnalyzerParameter::Central)
+      if (syst_type == AnalyzerParameter::Central && run_syst)
       {
         result_tree->Branch("weight_c_tag", &weight_c_tag);
         result_tree->Branch("weight_c_tag_down_extrap", &weight_c_tag_down_extrap);
@@ -1426,21 +1436,71 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       else
         result_tree->Branch("weight_c_tag", &weight_c_tag);
 
+      result_tree->Branch("weight_el_id", &weight_el_id);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_el_id_down", &weight_el_id_down);
+        result_tree->Branch("weight_el_id_up", &weight_el_id_up);
+      }
+
+      result_tree->Branch("weight_el_reco", &weight_el_reco);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_el_reco_down", &weight_el_reco_down);
+        result_tree->Branch("weight_el_reco_up", &weight_el_reco_up);
+      }
+
       result_tree->Branch("weight_hem_veto", &weight_hem_veto);
       result_tree->Branch("weight_lumi", &weight_lumi);
       result_tree->Branch("weight_mc", &weight_mc);
 
+      result_tree->Branch("weight_mu_id", &weight_mu_id);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_mu_id_down", &weight_mu_id_down);
+        result_tree->Branch("weight_mu_id_up", &weight_mu_id_up);
+      }
+
+      result_tree->Branch("weight_mu_iso", &weight_mu_iso);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_mu_iso_down", &weight_mu_iso_down);
+        result_tree->Branch("weight_mu_iso_up", &weight_mu_iso_up);
+      }
+
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_pdf_alternative", &weight_pdf_alternative);
+        result_tree->Branch("weight_pdf_error_set", weight_pdf_error_set, "weight_pdf_error_set[100]/F");
+        result_tree->Branch("weight_pdf_as_down", &weight_pdf_as_down);
+        result_tree->Branch("weight_pdf_as_up", &weight_pdf_as_up);
+      }
+
       result_tree->Branch("weight_pileup", &weight_pileup);
-      if (syst_type == AnalyzerParameter::Central)
+      if (syst_type == AnalyzerParameter::Central && run_syst)
       {
         result_tree->Branch("weight_pileup_down", &weight_pileup_down);
         result_tree->Branch("weight_pileup_up", &weight_pileup_up);
       }
 
-      if (syst_type == AnalyzerParameter::Central)
+      result_tree->Branch("weight_prefire", &weight_prefire);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_prefire_down", &weight_prefire_down);
+        result_tree->Branch("weight_prefire_up", &weight_prefire_up);
+      }
+
+      if (syst_type == AnalyzerParameter::Central && run_syst)
         result_tree->Branch("weight_ps", weight_ps, "weight_ps[4]");
 
-      if (syst_type == AnalyzerParameter::Central)
+      result_tree->Branch("weight_pujet_veto", &weight_pujet_veto);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_pujet_veto_down", &weight_pujet_veto_down);
+        result_tree->Branch("weight_pujet_veto_up", &weight_pujet_veto_up);
+      }
+
+      if (syst_type == AnalyzerParameter::Central && run_syst)
       {
         result_tree->Branch("weight_scale_variation_1", &weight_scale_variation_1);
         result_tree->Branch("weight_scale_variation_2", &weight_scale_variation_2);
@@ -1450,16 +1510,18 @@ void Vcb_Tagging_RF::Set_Result_Tree()
         result_tree->Branch("weight_scale_variation_8", &weight_scale_variation_8);
       }
 
-      result_tree->Branch("weight_prefire", &weight_prefire);
-      result_tree->Branch("weight_pujet_veto", &weight_pujet_veto);
+      result_tree->Branch("weight_sl_trig", &weight_sl_trig);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_sl_trig_down", &weight_sl_trig_down);
+        result_tree->Branch("weight_sl_trig_up", &weight_sl_trig_up);
+      }
+
       result_tree->Branch("weight_top_pt", &weight_top_pt);
 
-      result_tree->Branch("n_vertex", &nPV);
-      result_tree->Branch("n_pileup", &nPileUp);
-
       result_tree->Branch("lepton_pt", &lepton_pt);
-      result_tree->Branch("lepton_eta", &lepton_eta);
       result_tree->Branch("lepton_pt_uncorr", &lepton_pt_uncorr);
+      result_tree->Branch("lepton_eta", &lepton_eta);
       result_tree->Branch("lepton_rel_iso", &lepton_rel_iso);
 
       result_tree->Branch("electron_id_bit", &electron_id_bit, "electron_id_bit/i");
@@ -1468,45 +1530,38 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       result_tree->Branch("n_bjets", &n_b_jet);
       result_tree->Branch("n_cjets", &n_c_jet);
 
-      result_tree->Branch("ht", &ht);
+      // result_tree->Branch("pt_leading_jet", &pt_leading_jet);
+      // result_tree->Branch("pt_subleading_jet", &pt_subleading_jet);
 
-      result_tree->Branch("leading_jet_bvsc", &leading_jet_bvsc);
-      result_tree->Branch("leading_jet_cvsb", &leading_jet_cvsb);
-      result_tree->Branch("leading_jet_cvsl", &leading_jet_cvsl);
-      result_tree->Branch("leading_jet_eta", &leading_jet_eta);
-      result_tree->Branch("leading_jet_pt", &leading_jet_pt);
+      // result_tree->Branch("eta_leading_jet", &eta_leading_jet);
+      // result_tree->Branch("eta_subleading_jet", &eta_subleading_jet);
 
-      result_tree->Branch("subleading_jet_bvsc", &subleading_jet_bvsc);
-      result_tree->Branch("subleading_jet_cvsb", &subleading_jet_cvsb);
-      result_tree->Branch("subleading_jet_cvsl", &subleading_jet_cvsl);
-      result_tree->Branch("subleading_jet_eta", &subleading_jet_eta);
-      result_tree->Branch("subleading_jet_pt", &subleading_jet_pt);
+      // result_tree->Branch("bvsc_leading_jet", &bvsc_leading_jet);
+      // result_tree->Branch("cvsb_leading_jet", &cvsb_leading_jet);
+      // result_tree->Branch("cvsl_leading_jet", &cvsl_leading_jet);
+
+      // result_tree->Branch("bvsc_subleading_jet", &bvsc_subleading_jet);
+      // result_tree->Branch("cvsb_subleading_jet", &cvsb_subleading_jet);
+      // result_tree->Branch("cvsl_subleading_jet", &cvsl_subleading_jet);
 
       result_tree->Branch("met_pt", &met_pt);
+      result_tree->Branch("met_phi", &met_phi);
 
+      result_tree->Branch("mt", &mt);
+
+      // For MC
       result_tree->Branch("decay_mode", &decay_mode);
-
       result_tree->Branch("genTtbarId", &genTtbarId);
-
-      // unused. Let's remove it to reduce the size of the output file
-      // result_tree->Branch("Gen_HF_Flavour", &vec_gen_hf_flavour);
-      // result_tree->Branch("Gen_HF_Origin", &vec_gen_hf_origin);
-
-      // result_tree->Branch("Sel_Gen_HF_Flavour", &vec_sel_gen_hf_flavour);
-      // result_tree->Branch("Sel_Gen_HF_Origin", &vec_sel_gen_hf_origin);
 
       result_tree->Branch("Jet_Pt", &vec_jet_pt);
       result_tree->Branch("Jet_Eta", &vec_jet_eta);
       result_tree->Branch("Jet_Flavor", &vec_jet_flavor);
-      result_tree->Branch("Jet_BvsC", &vec_jet_bvsc);
-      result_tree->Branch("Jet_CvsB", &vec_jet_cvsb);
-      result_tree->Branch("Jet_CvsL", &vec_jet_cvsl);
 
       map_result_tree.insert({vec_channel[i] + param.GetSystType(), result_tree});
     } // loop over syst
   } // loop over channel
 
   return;
-} // void Vcb_Tagging_RF::Set_Result_Tree()
+} // void Vcb_Cal_TF::Set_Result_Tree()
 
 //////////

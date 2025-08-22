@@ -22,7 +22,9 @@
 #pragma link C++ class Vcb_DL+;
 #pragma link C++ class Vcb_Tagging_RF+;
 #pragma link C++ class Vcb_Tagging_RF_DL+;
+#pragma link C++ class Vcb_Cal_TF+;
 #pragma link C++ class Vcb_TTHF_MC_Cross_Section+;
+#pragma link C++ class Vcb_Modelling_Patch+; 
 #pragma link C++ class XYMETCorrection_withUL17andUL18andUL16+;
 
 #endif

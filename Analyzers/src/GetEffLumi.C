@@ -2,15 +2,16 @@
 
 void GetEffLumi::initializeAnalyzer()
 {
-  fChain->SetBranchStatus("*", 0);
-  fChain->SetBranchStatus("IsData", 1);
-  if (!IsDATA)
-  {
-    fChain->SetBranchStatus("gen_weight", 1);
-    if (fChain->GetBranch("weight_Scale"))
-      fChain->SetBranchStatus("weight_Scale", 1);
-    // fChain->SetBranchStatus("genTtbarId", 1);
-  }
+  // slow but need to check all branches are OK
+  // fChain->SetBranchStatus("*", 0);
+  // fChain->SetBranchStatus("IsData", 1);
+  // if (!IsDATA)
+  // {
+  //   fChain->SetBranchStatus("gen_weight", 1);
+  //   if (fChain->GetBranch("weight_Scale"))
+  //     fChain->SetBranchStatus("weight_Scale", 1);
+  //   // fChain->SetBranchStatus("genTtbarId", 1);
+  // }
 }
 
 void GetEffLumi::executeEvent()

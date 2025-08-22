@@ -297,6 +297,8 @@ public:
 
 private:
   TH2D *JetVetoMap = NULL;
+
+  LHAPDFHandler lha_pdf_handler;
 };
 
 #endif
