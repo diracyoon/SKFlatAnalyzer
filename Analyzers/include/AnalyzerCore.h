@@ -229,8 +229,14 @@ public:
 
   float GetJECUncertainty(TString source, TString JetType, float eta, float pt, int sys);
   void SetupJECUncertainty(TString source, TString JetType = "AK4PFchs");
+  
+  float GetJECUncertainty_JSON(TString source, TString JetType, float eta, float pt, int sys);
+  void SetupJECUncertainty_JSON(TString source, TString JetType = "AK4PFchs");
+  unique_ptr<CorrectionSet> cset_jec;
+  map<TString, Correction::Ref> map_correction_ref_jec_source;
 
   int Get_W_Decay_Mode(const vector<Gen> &vec_gen);
+  bool Veto_TTJJ(const vector<Gen> &vec_gen);  
 
   //==== Plotting
   std::map<TString, TH1D *> maphist_TH1D;

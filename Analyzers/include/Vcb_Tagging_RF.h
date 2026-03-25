@@ -131,6 +131,8 @@ protected:
 
   float weight_prefire;
   float weight_top_pt;
+  float weight_top_pt_mva;
+  float weight_b_frag_mva_nominal;
   float weight_pujet_veto;
 
   float weight_scale_variation_1;

@@ -26,6 +26,159 @@ Vcb_Tagging_RF::~Vcb_Tagging_RF()
 
 void Vcb_Tagging_RF::initializeAnalyzer()
 {
+  fChain->SetBranchStatus("fatjet*", 0);
+  fChain->SetBranchStatus("photon*", 0);
+  fChain->SetBranchStatus("tau*", 0);
+
+  //===========================================================================
+  // [Optimization] Disable unused Electron branches
+  // Electron 클래스에 저장 공간(멤버 변수)이 없는 브랜치들을 비활성화합니다.
+  //===========================================================================
+
+  // 1. GSF Track 상세 정보 (General Track 정보만 사용됨)
+  fChain->SetBranchStatus("electron_gsfpt", 0);
+  fChain->SetBranchStatus("electron_gsfEta", 0);
+  fChain->SetBranchStatus("electron_gsfPhi", 0);
+  fChain->SetBranchStatus("electron_gsfCharge", 0);
+
+  // 2. SuperCluster 상세 정보 (Eta, Phi, Energy 외 미사용)
+  fChain->SetBranchStatus("electron_scPreEnergy", 0);
+  fChain->SetBranchStatus("electron_scRawEnergy", 0);
+  fChain->SetBranchStatus("electron_scEt", 0);
+  fChain->SetBranchStatus("electron_etaWidth", 0);
+  fChain->SetBranchStatus("electron_phiWidth", 0);
+
+  // 3. Shower Shape & Energy Fraction (사용되는 변수 제외하고 비활성화)
+  // GetAllElectrons에서는 electron_dEtaInSeed를 사용함
+  fChain->SetBranchStatus("electron_dEtaIn", 0);
+  // GetAllElectrons에서는 electron_Full5x5_SigmaIEtaIEta를 사용함
+  fChain->SetBranchStatus("electron_sigmaIEtaIEta", 0);
+
+  fChain->SetBranchStatus("electron_fbrem", 0);
+  fChain->SetBranchStatus("electron_eOverP", 0);
+  fChain->SetBranchStatus("electron_E15", 0);
+  fChain->SetBranchStatus("electron_E25", 0);
+  fChain->SetBranchStatus("electron_E55", 0);
+
+  // 4. Isolation - Cone 0.3 상세 성분 (Rho 보정된 RelIso만 사용됨)
+  // MiniIso 관련 변수(electron_chMiniIso 등)는 사용되므로 끄면 안 됨!
+  fChain->SetBranchStatus("electron_chIso03", 0);
+  fChain->SetBranchStatus("electron_nhIso03", 0);
+  fChain->SetBranchStatus("electron_phIso03", 0);
+  fChain->SetBranchStatus("electron_puChIso03", 0);
+
+  // GetAllElectrons에서 Rho 버전만 사용함
+  fChain->SetBranchStatus("electron_RelPFIso_dBeta", 0);
+
+  // 5. Impact Parameter & Vertex (VTX 접미사가 붙은 변수만 사용됨)
+  // 주의: electron_dxyVTX 등은 사용되므로 끄면 안 됨
+  fChain->SetBranchStatus("electron_dxy", 0);
+  fChain->SetBranchStatus("electron_sigdxy", 0);
+  fChain->SetBranchStatus("electron_dz", 0);
+
+  // BeamSpot 기준 변수는 사용 안 함
+  fChain->SetBranchStatus("electron_dxyBS", 0);
+  fChain->SetBranchStatus("electron_dzBS", 0);
+
+  // 6. Charge Consistency (GsfCtfScPix... 버전 하나만 사용됨)
+  fChain->SetBranchStatus("electron_isGsfScPixChargeConsistent", 0);
+  fChain->SetBranchStatus("electron_isGsfCtfChargeConsistent", 0);
+
+  fChain->SetBranchStatus("muon_PfChargedHadronIsoR03", 0);
+  fChain->SetBranchStatus("muon_PfNeutralHadronIsoR03", 0);
+  fChain->SetBranchStatus("muon_PfGammaIsoR03", 0);
+  fChain->SetBranchStatus("muon_PFSumPUIsoR03", 0);
+
+  fChain->SetBranchStatus("muon_hcaliso", 0);
+  fChain->SetBranchStatus("muon_ecaliso", 0);
+
+  fChain->SetBranchStatus("muon_trkisoR05", 0);
+  fChain->SetBranchStatus("muon_hcalisoR05", 0);
+  fChain->SetBranchStatus("muon_ecalisoR05", 0);
+
+  // 2. Track & Hit 상세 정보
+  // (GetAllMuons는 muon_trackerLayers와 muon_normchi(Chi2)만 사용함)
+  fChain->SetBranchStatus("muon_nChambers", 0);
+  fChain->SetBranchStatus("muon_matchedstations", 0);
+  fChain->SetBranchStatus("muon_stationMask", 0);
+  fChain->SetBranchStatus("muon_nSegments", 0);
+  fChain->SetBranchStatus("muon_validhits", 0);
+  fChain->SetBranchStatus("muon_trackerHits", 0);
+  fChain->SetBranchStatus("muon_pixelHits", 0);
+  fChain->SetBranchStatus("muon_validmuonhits", 0);
+
+  // 3. Impact Parameter & Vertex (VTX가 안 붙은 변수들)
+  // (GetAllMuons는 무조건 VTX가 붙은 변수(dxyVTX 등)만 사용함)
+  fChain->SetBranchStatus("muon_dxy", 0);
+  fChain->SetBranchStatus("muon_d0", 0);
+  fChain->SetBranchStatus("muon_dsz", 0);
+  fChain->SetBranchStatus("muon_dz", 0);
+  fChain->SetBranchStatus("muon_dB", 0); // dB도 사용 안 함
+
+  // BeamSpot 기준 변수 미사용
+  fChain->SetBranchStatus("muon_dxyBS", 0);
+  fChain->SetBranchStatus("muon_dzBS", 0);
+  fChain->SetBranchStatus("muon_dszBS", 0);
+
+  // Vertex 좌표 자체는 미사용 (dxyVTX 값을 직접 씀)
+  fChain->SetBranchStatus("muon_vx", 0);
+  fChain->SetBranchStatus("muon_vy", 0);
+  fChain->SetBranchStatus("muon_vz", 0);
+
+  // 4. Detailed Track Parameters (Inner, Outer, Global, Best)
+  // (GetAllMuons는 muon_pt(MiniAOD)와 muon_TuneP_pt만 사용함)
+  // Best Track
+  fChain->SetBranchStatus("muon_Best_pt", 0);
+  fChain->SetBranchStatus("muon_Best_ptError", 0);
+  fChain->SetBranchStatus("muon_Best_eta", 0);
+  fChain->SetBranchStatus("muon_Best_phi", 0);
+
+  // Inner Track
+  fChain->SetBranchStatus("muon_Inner_pt", 0);
+  fChain->SetBranchStatus("muon_Inner_ptError", 0);
+  fChain->SetBranchStatus("muon_Inner_eta", 0);
+  fChain->SetBranchStatus("muon_Inner_phi", 0);
+
+  // Outer Track
+  fChain->SetBranchStatus("muon_Outer_pt", 0);
+  fChain->SetBranchStatus("muon_Outer_ptError", 0);
+  fChain->SetBranchStatus("muon_Outer_eta", 0);
+  fChain->SetBranchStatus("muon_Outer_phi", 0);
+
+  // Global Track
+  fChain->SetBranchStatus("muon_GLB_pt", 0);
+  fChain->SetBranchStatus("muon_GLB_ptError", 0);
+  fChain->SetBranchStatus("muon_GLB_eta", 0);
+  fChain->SetBranchStatus("muon_GLB_phi", 0);
+
+  // 기타 Track 파라미터
+  fChain->SetBranchStatus("muon_qoverp", 0);
+  fChain->SetBranchStatus("muon_theta", 0);
+  fChain->SetBranchStatus("muon_lambda", 0);
+
+  // 5. MVA & Jet Relation
+  // (muon_MVA는 사용하지만, lowpt/soft/jetPtRel 등은 Muon 클래스에 넣지 않음)
+  fChain->SetBranchStatus("muon_lowptMVA", 0);
+  fChain->SetBranchStatus("muon_softMVA", 0);
+  fChain->SetBranchStatus("muon_jetPtRatio", 0);
+  fChain->SetBranchStatus("muon_jetPtRel", 0);
+
+  // 6. Simulation Truth
+  fChain->SetBranchStatus("muon_simType", 0);
+  fChain->SetBranchStatus("muon_simExtType", 0);
+  fChain->SetBranchStatus("muon_simFlavour", 0);
+  fChain->SetBranchStatus("muon_simHeaviestMotherFlavour", 0);
+  fChain->SetBranchStatus("muon_simPdgId", 0);
+  fChain->SetBranchStatus("muon_simMotherPdgId", 0);
+  fChain->SetBranchStatus("muon_simMatchQuality", 0);
+
+  fChain->SetCacheSize(128 * 1024 * 1024);
+  fChain->SetCacheLearnEntries(1000);
+  // fChain->AddBranchToCache("*", kTRUE);
+
+  outfile->SetCompressionAlgorithm(ROOT::kLZ4);
+  outfile->SetCompressionLevel(4);
+
   // run_mu_ch = HasFlag("RunMu");
   // cout << "[Vcb_Tagging_RF::initializeAnalyzer] RunMu = " << run_mu_ch << endl;
 
@@ -123,7 +276,10 @@ void Vcb_Tagging_RF::initializeAnalyzer()
       for (auto jec_source : JECSources_byYear)
         JECSources.push_back(jec_source + "_" + year);
       for (auto jec_source : JECSources)
-        SetupJECUncertainty(jec_source, "AK4PFchs");
+      {
+        // SetupJECUncertainty(jec_source, "AK4PFchs");
+        SetupJECUncertainty_JSON(jec_source, "AK4PFchs");
+      }
 
       // vec_syst_type.push_back(AnalyzerParameter::JetEnDown);
       // vec_syst_type.push_back(AnalyzerParameter::JetEnUp);
@@ -239,11 +395,11 @@ void Vcb_Tagging_RF::executeEvent()
       if (run_dd)
       {
         param.Muon_Tight_ID = "POGTightWithLooseIso";
-        // param.Muon_Loose_ID = "POGLooseWithLooseIso";
+        param.Muon_Loose_ID = "POGLooseWithLooseIso";
         param.Muon_Jet_Cleaning_ID = "POGTightWithTightIso";
 
         param.Electron_Tight_ID = "passMVAID_iso_WP90";
-        // param.Electron_Loose_ID = "passMVAID_iso_WP90";
+        param.Electron_Loose_ID = "passMVAID_iso_WP90";
         param.Electron_Jet_Cleaning_ID = "passMVAID_iso_WP80";
       }
       else
@@ -338,6 +494,11 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
     // Top Pt reweight
     weight_top_pt = mcCorr->GetTopPtReweight(vec_gen);
     weight *= weight_top_pt;
+
+    weight_top_pt_mva = mcCorr->GetTopPtReweightMVA(vec_gen);
+
+    // B_Fragmentation reweight
+    weight_b_frag_mva_nominal = mcCorr->GetBFragReweightMVA(vec_gen, 0);
 
     // Scale Variation
     if (param.syst_ == AnalyzerParameter::Central)
@@ -620,8 +781,8 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   vector<Electron> vec_sel_electron = SelectElectrons(vec_this_electron, param.Electron_Tight_ID, el_trig_safe_pt_cut, ELECTRON_ETA);
 
   // for lepton veto
-  // vector<Muon> vec_muon_veto = SelectMuons(vec_this_muon, param.Muon_Loose_ID, MUON_PT_VETO, MUON_ETA);
-  // vector<Electron> vec_electron_veto = SelectElectrons(vec_this_electron, param.Electron_Loose_ID, ELECTRON_PT_VETO, ELECTRON_ETA);
+  vector<Muon> vec_muon_veto = SelectMuons(vec_this_muon, param.Muon_Loose_ID, MUON_PT_VETO, MUON_ETA);
+  vector<Electron> vec_electron_veto = SelectElectrons(vec_this_electron, param.Electron_Loose_ID, ELECTRON_PT_VETO, ELECTRON_ETA);
 
   // for lepton jet cleaning
   vector<Muon> vec_muon_jet_cleaning = SelectMuons(vec_this_muon, param.Muon_Jet_Cleaning_ID, mu_trig_safe_pt_cut, MUON_ETA);
@@ -672,7 +833,7 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
 
     // SF for electron trigger effi
     else if (run_el_ch)
-      sf_sl_trig = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, 0);
+      sf_sl_trig = mcCorr->ElectronTrigger_SF("passMVAID_iso_WP80", el_trig, vec_sel_electron, 0);
 
     weight *= sf_sl_trig;
   }
@@ -683,10 +844,10 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   {
     if (vec_sel_muon.size() != 1 || vec_sel_electron.size() != 0)
       return;
-    // if (vec_muon_veto.size() != 1)
-    //   return;
-    // if (vec_electron_veto.size() != 0)
-    //   return;
+    if (vec_muon_veto.size() != 1)
+      return;
+    if (vec_electron_veto.size() != 0)
+      return;
 
     muon = vec_sel_muon.at(0);
     lepton = muon;
@@ -695,10 +856,10 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
   {
     if (vec_sel_electron.size() != 1 || vec_sel_muon.size() != 0)
       return;
-    // if (vec_electron_veto.size() != 1)
-    //   return;
-    // if (vec_muon_veto.size() != 0)
-    //   return;
+    if (vec_electron_veto.size() != 1)
+      return;
+    if (vec_muon_veto.size() != 0)
+      return;
 
     electron = vec_sel_electron.at(0);
     lepton = electron;
@@ -919,9 +1080,9 @@ void Vcb_Tagging_RF::executeEventFromParameter(AnalyzerParameter param)
       weight_b_tag_down_jes = mcCorr->GetBTaggingReweight_Json(vec_sel_jet, "down_jesRelativeBal");
     else if (param.syst_ == AnalyzerParameter::JetEnRelativeBalUp)
       weight_b_tag_up_jes = mcCorr->GetBTaggingReweight_Json(vec_sel_jet, "up_jesRelativeBal");
-    else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down)
+    else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Down || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Down || param.syst_ == AnalyzerParameter::JetEnAbsolute2018Down)
       weight_b_tag_down_jes = mcCorr->GetBTaggingReweight_Json(vec_sel_jet, "down_jesAbsolute_" + to_string(DataYear));
-    else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up)
+    else if (param.syst_ == AnalyzerParameter::JetEnAbsolute2016Up || param.syst_ == AnalyzerParameter::JetEnAbsolute2017Up || param.syst_ == AnalyzerParameter::JetEnAbsolute2018Up)
       weight_b_tag_up_jes = mcCorr->GetBTaggingReweight_Json(vec_sel_jet, "up_jesAbsolute_" + to_string(DataYear));
     else if (param.syst_ == AnalyzerParameter::JetEnBBEC12016Down || param.syst_ == AnalyzerParameter::JetEnBBEC12017Down || param.syst_ == AnalyzerParameter::JetEnBBEC12018Down)
       weight_b_tag_down_jes = mcCorr->GetBTaggingReweight_Json(vec_sel_jet, "down_jesBBEC1_" + to_string(DataYear));
@@ -1267,6 +1428,7 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       param.syst_ = syst_type;
 
       TTree *result_tree = new TTree("Result_Tree", "Result_Tree");
+
       result_tree->SetDirectory(dir_syst[i][j]);
 
       result_tree->Branch("sf_mu_id", &sf_mu_id);
@@ -1453,6 +1615,8 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       result_tree->Branch("weight_prefire", &weight_prefire);
       result_tree->Branch("weight_pujet_veto", &weight_pujet_veto);
       result_tree->Branch("weight_top_pt", &weight_top_pt);
+      result_tree->Branch("weight_top_pt_mva", &weight_top_pt_mva);
+      result_tree->Branch("weight_b_frag_mva_nominal", &weight_b_frag_mva_nominal);
 
       result_tree->Branch("n_vertex", &nPV);
       result_tree->Branch("n_pileup", &nPileUp);
@@ -1501,6 +1665,15 @@ void Vcb_Tagging_RF::Set_Result_Tree()
       result_tree->Branch("Jet_BvsC", &vec_jet_bvsc);
       result_tree->Branch("Jet_CvsB", &vec_jet_cvsb);
       result_tree->Branch("Jet_CvsL", &vec_jet_cvsl);
+
+      // result_tree->SetAutoSave(0);
+      // TIter next(result_tree->GetListOfBranches());
+      // TBranch *b;
+      // while ((b = (TBranch *)next()))
+      // {
+      //   b->SetBasketSize(5 * 1024 * 1024);
+      // }
+      // result_tree->SetAutoFlush(-512 * 1024 * 1024);
 
       map_result_tree.insert({vec_channel[i] + param.GetSystType(), result_tree});
     } // loop over syst

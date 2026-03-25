@@ -1,7 +1,6 @@
-#ifndef __Vcb_Cal_TF_h__
-#define __Vcb_Cal_TF_h__
+#ifndef __Val_B_Frag_h__
+#define __Val_B_Frag_h__
 
-#include <TMVA/Reader.h>
 #include <TDirectory.h>
 
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
@@ -14,11 +13,11 @@
 using namespace std;
 using namespace TMath;
 
-class Vcb_Cal_TF : public AnalyzerCore
+class Val_B_Frag : public AnalyzerCore
 {
 public:
-  Vcb_Cal_TF();
-  ~Vcb_Cal_TF();
+  Val_B_Frag();
+  ~Val_B_Frag();
 
   void initializeAnalyzer();
   void executeEvent();
@@ -31,26 +30,9 @@ protected:
   bool run_el_ch;
   TString channel_name;
 
-  bool run_debug;
-  bool run_syst;
-  bool run_no_jes_breakdown;
-
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
   TDirectory ***dir_syst;   // channel, syst
-
-  typedef enum cut_flow
-  {
-    No_Cut,
-    Met_Filter,
-    Trigger,
-    Single_Lepton,
-    At_Least_Four_Jets,
-    At_Least_Two_B_Tagged,
-    MET,
-    KF_Pass
-  } Cut_Flow;
-  int n_cut_flow = Cut_Flow::KF_Pass + 1;
 
   int era_index;
 
@@ -88,16 +70,6 @@ protected:
   vector<Jet> vec_this_jet;
 
   vector<Jet> vec_sel_jet;
-  vector<Jet> vec_sel_jet_match;
-
-  vector<float> vec_jet_pt;
-  vector<float> vec_jet_eta;
-  vector<float> vec_jet_phi;
-  vector<float> vec_jet_mass;
-  vector<float> vec_jet_bvsc;
-  vector<float> vec_jet_cvsb;
-  vector<float> vec_jet_cvsl;
-  vector<int> vec_jet_flavor;
 
   vector<bool> vec_btag;
   vector<bool> vec_btag_match;
@@ -130,8 +102,6 @@ protected:
   float lepton_eta;
   float lepton_phi;
   float lepton_rel_iso;
-
-  unsigned int electron_id_bit;
 
   int n_sel_jet;
   int n_b_jet;
@@ -173,102 +143,33 @@ protected:
   float weight;
 
   float weight_b_tag;
-  float weight_b_tag_down_hf;
-  float weight_b_tag_up_hf;
-  float weight_b_tag_down_lf;
-  float weight_b_tag_up_lf;
-  float weight_b_tag_down_jes;
-  float weight_b_tag_up_jes;
-  float weight_b_tag_down_lfstats1;
-  float weight_b_tag_up_lfstats1;
-  float weight_b_tag_down_lfstats2;
-  float weight_b_tag_up_lfstats2;
-  float weight_b_tag_down_cferr1;
-  float weight_b_tag_up_cferr1;
-  float weight_b_tag_down_cferr2;
-  float weight_b_tag_up_cferr2;
-  float weight_b_tag_down_hfstats1;
-  float weight_b_tag_up_hfstats1;
-  float weight_b_tag_down_hfstats2;
-  float weight_b_tag_up_hfstats2;
+
 
   float weight_c_tag;
-  float weight_c_tag_down_extrap;
-  float weight_c_tag_up_extrap;
-  float weight_c_tag_down_interp;
-  float weight_c_tag_up_interp;
-  float weight_c_tag_down_lhe_scale_muf;
-  float weight_c_tag_up_lhe_scale_muf;
-  float weight_c_tag_down_lhe_scale_mur;
-  float weight_c_tag_up_lhe_scale_mur;
-  float weight_c_tag_down_ps_fsr_fixed;
-  float weight_c_tag_up_ps_fsr_fixed;
-  float weight_c_tag_down_ps_isr_fixed;
-  float weight_c_tag_up_ps_isr_fixed;
-  float weight_c_tag_down_pu;
-  float weight_c_tag_up_pu;
-  float weight_c_tag_down_stat;
-  float weight_c_tag_up_stat;
-  float weight_c_tag_down_xsec_brunc_dyjets_b;
-  float weight_c_tag_up_xsec_brunc_dyjets_b;
-  float weight_c_tag_down_xsec_brunc_dyjets_c;
-  float weight_c_tag_up_xsec_brunc_dyjets_c;
-  float weight_c_tag_down_xsec_brunc_wjets_c;
-  float weight_c_tag_up_xsec_brunc_wjets_c;
-  float weight_c_tag_down_jer;
-  float weight_c_tag_up_jer;
-  float weight_c_tag_down_jes_total;
-  float weight_c_tag_up_jes_total;
 
   float weight_el_id;
-  float weight_el_id_down;
-  float weight_el_id_up;
 
   float weight_el_reco;
-  float weight_el_reco_down;
-  float weight_el_reco_up;
 
   float weight_hem_veto;
   float weight_lumi;
   float weight_mc;
 
   float weight_mu_id;
-  float weight_mu_id_down;
-  float weight_mu_id_up;
+
 
   float weight_mu_iso;
-  float weight_mu_iso_down;
-  float weight_mu_iso_up;
-
-  float weight_pdf_alternative;
-  float weight_pdf_error_set[100];
-  float weight_pdf_as_down;
-  float weight_pdf_as_up;
 
   float weight_pileup;
   float weight_pileup_down;
   float weight_pileup_up;
 
   float weight_prefire;
-  float weight_prefire_down;
-  float weight_prefire_up;
-
-  float weight_ps[4];
 
   float weight_pujet_veto;
-  float weight_pujet_veto_down;
-  float weight_pujet_veto_up;
-
-  float weight_scale_variation_1;
-  float weight_scale_variation_2;
-  float weight_scale_variation_3;
-  float weight_scale_variation_4;
-  float weight_scale_variation_6;
-  float weight_scale_variation_8;
 
   float weight_sl_trig;
-  float weight_sl_trig_down;
-  float weight_sl_trig_up;
+
 
   float weight_top_pt;
   float weight_top_pt_mva;
@@ -276,13 +177,13 @@ protected:
   float weight_b_frag_mva_nominal;
   float weight_b_frag_mva_up;
 
-  float weight_hdamp_mva_down;
-  float weight_hdamp_mva_up;
-
   TString region;
 
   float ht;
   float mt;
+
+  float xb_top;
+  float xb_antitop;
 
   int decay_mode;
   vector<int> vec_gen_hf_flavour;
@@ -295,12 +196,9 @@ protected:
 
   map<TString, TTree *> map_result_tree;
 
-  float Calculate_Mt(const Particle &lepton, const float &neu_px, const float &neu_py);
   void Clear();
-  int Chk_Included(const int index_matched_jet[4]);
-  void Make_Result_Tree(AnalyzerParameter &param);
-  Particle Rebalance_Met();
+  int Get_Xb(const vector<Gen> &gens, float &xb_top, float &xb_antitop);
   void Set_Result_Tree();
 };
 
-#endif /* __Vcb_Cal_TF_h__ */
+#endif /* __Val_B_Frag_h__ */

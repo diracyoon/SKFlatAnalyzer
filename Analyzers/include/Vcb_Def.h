@@ -1,6 +1,8 @@
 #ifndef Vcb_Def_h
 #define Vcb_Def_h
 
+const bool chk_include_pseudo_additional = true;
+
 const float T_MASS = 172.5;
 const float T_WIDTH = 1.5;
 const float W_MASS = 80.379;
@@ -20,7 +22,7 @@ const float ELECTRON_ETA = 2.5;
 
 const float JET_PT = 25.;
 const float JET_PT_DL = 25.;
-const float JET_ETA = 2.5;
+const float JET_ETA = 2.4;
 const float JET_ETA_2016 = 2.4;
 const float DR_LEPTON_VETO = 0.4;
 
@@ -66,5 +68,8 @@ const float REL_ISO_ELECTRON_BARREL_A = 0.0478;
 const float REL_ISO_ELECTRON_BARREL_B = 0.506;
 const float REL_ISO_ELECTRON_ENDCAP_A = 0.0658;
 const float REL_ISO_ELECTRON_ENDCAP_B = 0.963;
+
+// n_folding for ML training
+const int N_FOLDING = 3;
 
 #endif /* Vcb_Def_h */

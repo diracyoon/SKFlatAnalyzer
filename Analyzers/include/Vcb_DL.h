@@ -39,6 +39,9 @@ protected:
 
   // bool run_dd = true; // data driven
 
+  TString central_pdf;
+  TString central_new_pdf;
+
   vector<TString> vec_channel;
   TDirectory **dir_channel; // channel
   TDirectory ***dir_syst;   // channel, syst
@@ -111,6 +114,8 @@ protected:
   float had_t_charge_abs;
   float lep_t_charge_abs;
   float tt_charge;
+
+  float pt_gen_tt;
 
   float met_pt;
   float met_phi;
@@ -235,6 +240,13 @@ protected:
   float weight_sl_trig_mu_up;
 
   float weight_top_pt;
+  float weight_top_pt_mva;
+
+  float weight_hdamp_mva_down;
+  float weight_hdamp_mva_up;
+
+  float weight_b_frag_mva_nominal;
+  float weight_b_frag_mva_up;
 
   vector<float> vec_jet_pt;
   vector<float> vec_jet_eta;
@@ -247,6 +259,7 @@ protected:
   float Calculate_HT(const vector<Jet> &vec_jet);
   int Check_Process(const vector<Gen> &vec_gen);
   void Clear();
+  float Get_Pt_Gen_TT(const vector<Gen> &vec_gen);
   void Make_Result_Tree(AnalyzerParameter &param);
   Particle Rebalance_Met();
   vector<Electron> Select_Electrons_Iso(vector<Electron> &vec_electron);

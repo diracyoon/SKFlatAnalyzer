@@ -3,6 +3,8 @@
 
 #include "AnalyzerCore.h"
 
+#include "Vcb_Def.h"
+
 class Vcb_Modelling_Patch : public AnalyzerCore
 {
 public:
@@ -14,6 +16,8 @@ public:
   void executeEventFromParameter(AnalyzerParameter param);
 
 protected:
+  TTree *result_tree;
+
   TString central_pdf;
   TString central_new_pdf;
 
@@ -29,6 +33,13 @@ protected:
   float weight_pdf_as_up;
 
   float weight_top_pt;
+  float weight_top_pt_mva;
+
+  float weight_hdamp_mva_down;
+  float weight_hdamp_mva_up;
+
+  float weight_b_frag_mva_nominal;
+  float weight_b_frag_mva_up;
 
   float weight_ps[4];
 
@@ -39,8 +50,13 @@ protected:
   float weight_scale_variation_6;
   float weight_scale_variation_8;
 
+  // int decay_mode;
+
+  void Clear();
   bool Cut_PDF_Weight();
+  TString Histo_Name();
   bool IsNaN();
+  void Set_Result_Tree();
 };
 
 #endif /* __Vcb_Modelling_Patch__ */

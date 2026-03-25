@@ -2,18 +2,15 @@
 #define __Vcb_h__
 
 #include <TMVA/Reader.h>
-#include <TDirectory.h>
-
-#include "JetMETCorrections/Modules/interface/JetResolution.h"
-#include "XYMETCorrection_withUL17andUL18andUL16.h"
 
 #include "AnalyzerCore.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
 
-#include "Vcb_Def.h"
 #include "TKinFitterDriver.h"
-#include "Fitter_BDT.h"
-#include "Fitter_SPANet.h"
+#include "Vcb_Def.h"
 #include "Results_Container.h"
+
+#include "XYMETCorrection_withUL17andUL18andUL16.h"
 
 using namespace std;
 using namespace TMath;
@@ -30,16 +27,12 @@ public:
 
 protected:
   vector<AnalyzerParameter::Syst> vec_syst_type;
-  bool chk_bvsc_only = true;
 
   bool run_mu_ch;
   bool run_el_ch;
-  TString channel_name;
-
   bool run_debug;
   bool run_permutation_tree;
-  bool run_new_training_tree;
-  // bool run_hf_contamination_tree;
+  bool run_hf_contamination_tree;
   bool run_chi;
   bool run_result;
   bool run_syst;
@@ -47,17 +40,6 @@ protected:
   bool run_template_truth;
   bool rm_wm_constraint;
   bool rm_bjet_energy_reg_nn;
-
-  bool run_dd = true; // data driven
-
-  bool run_no_jes_breakdown;
-
-  TString central_pdf;
-  TString central_new_pdf;
-
-  vector<TString> vec_channel;
-  TDirectory **dir_channel; // channel
-  TDirectory ***dir_syst;   // channel, syst
 
   typedef enum cut_flow
   {
@@ -72,8 +54,6 @@ protected:
   } Cut_Flow;
   int n_cut_flow = Cut_Flow::KF_Pass + 1;
 
-  int era_index;
-
   vector<TString> vec_mu_id;
   vector<TString> vec_mu_id_sf_key;
   vector<TString> vec_mu_iso_sf_key;
@@ -83,21 +63,22 @@ protected:
 
   vector<TString> vec_el_trig;
   vector<TString> vec_mu_trig;
-  // vector<TString> vec_sl_trig; // single lepton
+  vector<TString> vec_sl_trig; // single lepton
 
   TString el_trig;
   TString mu_trig;
-  // TString sl_trig;
+  TString sl_trig;
 
   float el_trig_safe_pt_cut;
   float mu_trig_safe_pt_cut;
-  // float sl_trig_safe_pt_cut;
+  float sl_trig_safe_pt_cut;
 
   vector<JetTagging::Parameters> vec_jet_tagging_para;
 
   JME::JetResolution jet_resolution;
   JME::JetResolutionScaleFactor jet_resolution_sf;
 
+  TString channel;
   TKinFitterDriver *fitter_driver;
 
   vector<Muon> vec_muon;
@@ -112,22 +93,9 @@ protected:
   /* vector<Muon> vec_sel_muon; */
   /* vector<Muon> vec_muon_veto; */
   /* vector<Electron> vec_electron_veto; */
-
+  
   vector<Jet> vec_sel_jet;
   vector<Jet> vec_sel_jet_match;
-
-  vector<float> vec_jet_pt;
-  vector<float> vec_jet_eta;
-  vector<float> vec_jet_phi;
-  vector<float> vec_jet_mass;
-  vector<float> vec_jet_bvsc;
-  vector<float> vec_jet_cvsb;
-  vector<float> vec_jet_cvsl;
-  vector<int> vec_jet_flavor;
-  vector<float> vec_jet_reg_scale_b;
-  vector<float> vec_jet_reg_scale_c;
-  vector<float> vec_jet_reg_res_b;
-  vector<float> vec_jet_reg_res_c;
 
   vector<bool> vec_btag;
   vector<bool> vec_btag_match;
@@ -140,7 +108,6 @@ protected:
 
   int index_matched_jet[4];
   int index_matched_jet_match[4];
-  vector<int> vec_index_matched_jet;
 
   AnalyzerParameter param;
 
@@ -150,20 +117,13 @@ protected:
   bool chk_tau_conta;
   bool chk_matched_jets_only;
 
-  int index_fold;
-
   bool pu_conta_had_t_b;
   bool pu_conta_w_u;
   bool pu_conta_w_d;
   bool pu_conta_lep_t_b;
 
   float lepton_pt;
-  float lepton_pt_uncorr;
   float lepton_eta;
-  float lepton_phi;
-  float lepton_rel_iso;
-
-  unsigned int electron_id_bit;
 
   int n_sel_jet;
   int n_b_jet;
@@ -203,22 +163,10 @@ protected:
   float pt_w_d;
   float pt_lep_t_b;
 
-  float pt_raw_had_t_b;
-  float pt_raw_w_u;
-  float pt_raw_w_d;
-  float pt_raw_lep_t_b;
-
   float eta_had_t_b;
   float eta_w_u;
   float eta_w_d;
   float eta_lep_t_b;
-
-  float pt_had_w;
-  float pt_had_t;
-  float pt_lep_w;
-  float pt_lep_t;
-  float pt_tt;
-  float pt_gen_tt;
 
   float del_phi_w_u_w_d;
   float del_phi_had_w_had_t_b;
@@ -256,7 +204,6 @@ protected:
   float m_had_t;
   float m_had_w;
   float m_lep_t;
-  float m_lep_t_partial;
   float m_lep_w;
 
   float m_w_u_b;
@@ -309,8 +256,6 @@ protected:
   float weight_b_tag;
   float weight_b_tag_down_hf;
   float weight_b_tag_up_hf;
-  float weight_b_tag_down_lf;
-  float weight_b_tag_up_lf;
   float weight_b_tag_down_jes;
   float weight_b_tag_up_jes;
   float weight_b_tag_down_lfstats1;
@@ -354,9 +299,6 @@ protected:
   float weight_c_tag_down_jes_total;
   float weight_c_tag_up_jes_total;
 
-  float weight_b_frag_mva_nominal;
-  float weight_b_frag_mva_up;
-
   float weight_el_id;
   float weight_el_id_down;
   float weight_el_id_up;
@@ -364,9 +306,6 @@ protected:
   float weight_el_reco;
   float weight_el_reco_down;
   float weight_el_reco_up;
-
-  float weight_hdamp_mva_down;
-  float weight_hdamp_mva_up;
 
   float weight_hem_veto;
   float weight_lumi;
@@ -411,15 +350,14 @@ protected:
   float weight_sl_trig_up;
 
   float weight_top_pt;
-  float weight_top_pt_mva;
 
   TString region;
 
-  // TTree *permutation_tree_correct;
-  // TTree *permutation_tree_wrong;
+  TTree *permutation_tree_correct;
+  TTree *permutation_tree_wrong;
 
-  // TTree *hf_contamination_tree_correct;
-  // TTree *hf_contamination_tree_wrong;
+  TTree *hf_contamination_tree_correct;
+  TTree *hf_contamination_tree_wrong;
 
   float best_chi2;
   float best_mva_score_pre;
@@ -427,8 +365,6 @@ protected:
   float ht;
   float mt;
   float mva_hf_score;
-  float mva_bb_score;
-  float mva_cc_score;
 
   bool chk_hf_contamination;
 
@@ -461,9 +397,6 @@ protected:
   float cvsb_lep_t_b;
   float cvsl_lep_t_b;
 
-  float least_m_bb;
-  float least_dr_bb;
-
   int swapped_truth;
   int swapped_mva;
 
@@ -472,9 +405,7 @@ protected:
   TTree *template_tree[5];
   TTree *template_truth_tree[5];
 
-  map<TString, TTree *> map_new_training_tree;
-  map<TString, TTree *> map_permutation_tree;
-  map<TString, TTree *> map_result_tree;
+  map<AnalyzerParameter::Syst, TTree *> map_result_tree;
 
   TMVA::Reader *reader_hf_contamination_lessthantwo;
   TMVA::Reader *reader_hf_contamination_morethantwo;
@@ -492,45 +423,21 @@ protected:
   void Index_Converter(const vector<Jet> &vec_sel_jet, const vector<Jet> &vec_sel_jet_match, const int index_matched_jet_match[4], int index_matched_jet[4]);
   // void Index_Restorer(int& index_had_t_b, int& index_w_u, int& index_w_d, int& index_lep_t_b);
   void KF_Ambiguity_Remover(const vector<Jet> &vec_sel_jet, const int index_matched_jet[4]);
-  // void Make_HF_Contamination_Tree();
-  float Least_DR_bb();
-  float Least_M_bb();
-  void Make_New_Training_Tree();
+  void Make_HF_Contamination_Tree();
   void Make_Permutation_Tree();
-  void Make_Result_Tree(AnalyzerParameter &param);
+  void Make_Result_Tree(const AnalyzerParameter &param);
   void Make_Template_Tree();
   void Make_Template_Truth_Tree();
   Gen Neutrino(const vector<Gen> &vec_gen);
-  float Pt_Gen_TT(const vector<Gen> &vec_gen);
   Particle Rebalance_Met();
-  // void Set_HF_Contamination_Tree();
-  void Set_New_Training_Tree();
+  void Set_HF_Contamination_Tree();
   void Set_Permutation_Tree();
-  // void Set_Reader_HF_Contamination();
+  void Set_Reader_HF_Contamination();
   void Set_Reader_Swapper();
-  int Set_ABCD_Region();
   void Set_Region();
   void Set_Result_Tree();
   void Set_Template_Truth_Tree();
   void Sol_Neutrino_Pz(const Particle &lepton, const Particle &met, float neutrino_pz_sol[2]);
-
-  // https://prng.di.unimi.it/splitmix64.c
-  static inline uint64_t splitmix64(uint64_t x)
-  {
-    uint64_t z = (x += 0x9e3779b97f4a7c15ULL);
-    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
-    z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
-    return z ^ (z >> 31);
-  } // static inline uint64_t splitmix64(uint64_t x)
-
-  static inline uint32_t rle_bucket(uint64_t run, uint64_t lumi, uint64_t event, uint32_t nbuckets)
-  {
-    uint64_t seed = run * 0x9E3779B97F4A7C15ULL ^ lumi * 0xBF58476D1CE4E5B9ULL ^ event * 0x94D049BB133111EBULL;
-    uint64_t h = splitmix64(seed);
-
-    __uint128_t prod = (__uint128_t)h * (__uint128_t)nbuckets;
-    return (uint32_t)(prod >> 64);
-  } // static inline uint32_t rle_bucket(uint64_t run, uint64_t lumi, uint64_t event, uint32_t nbuckets)
 };
 
 #endif /* __Vcb_h__ */

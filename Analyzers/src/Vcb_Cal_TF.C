@@ -30,6 +30,159 @@ Vcb_Cal_TF::~Vcb_Cal_TF()
 
 void Vcb_Cal_TF::initializeAnalyzer()
 {
+  fChain->SetBranchStatus("fatjet*", 0);
+  fChain->SetBranchStatus("photon*", 0);
+  fChain->SetBranchStatus("tau*", 0);
+
+  //===========================================================================
+  // [Optimization] Disable unused Electron branches
+  // Electron 클래스에 저장 공간(멤버 변수)이 없는 브랜치들을 비활성화합니다.
+  //===========================================================================
+
+  // 1. GSF Track 상세 정보 (General Track 정보만 사용됨)
+  fChain->SetBranchStatus("electron_gsfpt", 0);
+  fChain->SetBranchStatus("electron_gsfEta", 0);
+  fChain->SetBranchStatus("electron_gsfPhi", 0);
+  fChain->SetBranchStatus("electron_gsfCharge", 0);
+
+  // 2. SuperCluster 상세 정보 (Eta, Phi, Energy 외 미사용)
+  fChain->SetBranchStatus("electron_scPreEnergy", 0);
+  fChain->SetBranchStatus("electron_scRawEnergy", 0);
+  fChain->SetBranchStatus("electron_scEt", 0);
+  fChain->SetBranchStatus("electron_etaWidth", 0);
+  fChain->SetBranchStatus("electron_phiWidth", 0);
+
+  // 3. Shower Shape & Energy Fraction (사용되는 변수 제외하고 비활성화)
+  // GetAllElectrons에서는 electron_dEtaInSeed를 사용함
+  fChain->SetBranchStatus("electron_dEtaIn", 0);
+  // GetAllElectrons에서는 electron_Full5x5_SigmaIEtaIEta를 사용함
+  fChain->SetBranchStatus("electron_sigmaIEtaIEta", 0);
+
+  fChain->SetBranchStatus("electron_fbrem", 0);
+  fChain->SetBranchStatus("electron_eOverP", 0);
+  fChain->SetBranchStatus("electron_E15", 0);
+  fChain->SetBranchStatus("electron_E25", 0);
+  fChain->SetBranchStatus("electron_E55", 0);
+
+  // 4. Isolation - Cone 0.3 상세 성분 (Rho 보정된 RelIso만 사용됨)
+  // MiniIso 관련 변수(electron_chMiniIso 등)는 사용되므로 끄면 안 됨!
+  fChain->SetBranchStatus("electron_chIso03", 0);
+  fChain->SetBranchStatus("electron_nhIso03", 0);
+  fChain->SetBranchStatus("electron_phIso03", 0);
+  fChain->SetBranchStatus("electron_puChIso03", 0);
+
+  // GetAllElectrons에서 Rho 버전만 사용함
+  fChain->SetBranchStatus("electron_RelPFIso_dBeta", 0);
+
+  // 5. Impact Parameter & Vertex (VTX 접미사가 붙은 변수만 사용됨)
+  // 주의: electron_dxyVTX 등은 사용되므로 끄면 안 됨
+  fChain->SetBranchStatus("electron_dxy", 0);
+  fChain->SetBranchStatus("electron_sigdxy", 0);
+  fChain->SetBranchStatus("electron_dz", 0);
+
+  // BeamSpot 기준 변수는 사용 안 함
+  fChain->SetBranchStatus("electron_dxyBS", 0);
+  fChain->SetBranchStatus("electron_dzBS", 0);
+
+  // 6. Charge Consistency (GsfCtfScPix... 버전 하나만 사용됨)
+  fChain->SetBranchStatus("electron_isGsfScPixChargeConsistent", 0);
+  fChain->SetBranchStatus("electron_isGsfCtfChargeConsistent", 0);
+
+  fChain->SetBranchStatus("muon_PfChargedHadronIsoR03", 0);
+  fChain->SetBranchStatus("muon_PfNeutralHadronIsoR03", 0);
+  fChain->SetBranchStatus("muon_PfGammaIsoR03", 0);
+  fChain->SetBranchStatus("muon_PFSumPUIsoR03", 0);
+
+  fChain->SetBranchStatus("muon_hcaliso", 0);
+  fChain->SetBranchStatus("muon_ecaliso", 0);
+
+  fChain->SetBranchStatus("muon_trkisoR05", 0);
+  fChain->SetBranchStatus("muon_hcalisoR05", 0);
+  fChain->SetBranchStatus("muon_ecalisoR05", 0);
+
+  // 2. Track & Hit 상세 정보
+  // (GetAllMuons는 muon_trackerLayers와 muon_normchi(Chi2)만 사용함)
+  fChain->SetBranchStatus("muon_nChambers", 0);
+  fChain->SetBranchStatus("muon_matchedstations", 0);
+  fChain->SetBranchStatus("muon_stationMask", 0);
+  fChain->SetBranchStatus("muon_nSegments", 0);
+  fChain->SetBranchStatus("muon_validhits", 0);
+  fChain->SetBranchStatus("muon_trackerHits", 0);
+  fChain->SetBranchStatus("muon_pixelHits", 0);
+  fChain->SetBranchStatus("muon_validmuonhits", 0);
+
+  // 3. Impact Parameter & Vertex (VTX가 안 붙은 변수들)
+  // (GetAllMuons는 무조건 VTX가 붙은 변수(dxyVTX 등)만 사용함)
+  fChain->SetBranchStatus("muon_dxy", 0);
+  fChain->SetBranchStatus("muon_d0", 0);
+  fChain->SetBranchStatus("muon_dsz", 0);
+  fChain->SetBranchStatus("muon_dz", 0);
+  fChain->SetBranchStatus("muon_dB", 0); // dB도 사용 안 함
+
+  // BeamSpot 기준 변수 미사용
+  fChain->SetBranchStatus("muon_dxyBS", 0);
+  fChain->SetBranchStatus("muon_dzBS", 0);
+  fChain->SetBranchStatus("muon_dszBS", 0);
+
+  // Vertex 좌표 자체는 미사용 (dxyVTX 값을 직접 씀)
+  fChain->SetBranchStatus("muon_vx", 0);
+  fChain->SetBranchStatus("muon_vy", 0);
+  fChain->SetBranchStatus("muon_vz", 0);
+
+  // 4. Detailed Track Parameters (Inner, Outer, Global, Best)
+  // (GetAllMuons는 muon_pt(MiniAOD)와 muon_TuneP_pt만 사용함)
+  // Best Track
+  fChain->SetBranchStatus("muon_Best_pt", 0);
+  fChain->SetBranchStatus("muon_Best_ptError", 0);
+  fChain->SetBranchStatus("muon_Best_eta", 0);
+  fChain->SetBranchStatus("muon_Best_phi", 0);
+
+  // Inner Track
+  fChain->SetBranchStatus("muon_Inner_pt", 0);
+  fChain->SetBranchStatus("muon_Inner_ptError", 0);
+  fChain->SetBranchStatus("muon_Inner_eta", 0);
+  fChain->SetBranchStatus("muon_Inner_phi", 0);
+
+  // Outer Track
+  fChain->SetBranchStatus("muon_Outer_pt", 0);
+  fChain->SetBranchStatus("muon_Outer_ptError", 0);
+  fChain->SetBranchStatus("muon_Outer_eta", 0);
+  fChain->SetBranchStatus("muon_Outer_phi", 0);
+
+  // Global Track
+  fChain->SetBranchStatus("muon_GLB_pt", 0);
+  fChain->SetBranchStatus("muon_GLB_ptError", 0);
+  fChain->SetBranchStatus("muon_GLB_eta", 0);
+  fChain->SetBranchStatus("muon_GLB_phi", 0);
+
+  // 기타 Track 파라미터
+  fChain->SetBranchStatus("muon_qoverp", 0);
+  fChain->SetBranchStatus("muon_theta", 0);
+  fChain->SetBranchStatus("muon_lambda", 0);
+
+  // 5. MVA & Jet Relation
+  // (muon_MVA는 사용하지만, lowpt/soft/jetPtRel 등은 Muon 클래스에 넣지 않음)
+  fChain->SetBranchStatus("muon_lowptMVA", 0);
+  fChain->SetBranchStatus("muon_softMVA", 0);
+  fChain->SetBranchStatus("muon_jetPtRatio", 0);
+  fChain->SetBranchStatus("muon_jetPtRel", 0);
+
+  // 6. Simulation Truth
+  fChain->SetBranchStatus("muon_simType", 0);
+  fChain->SetBranchStatus("muon_simExtType", 0);
+  fChain->SetBranchStatus("muon_simFlavour", 0);
+  fChain->SetBranchStatus("muon_simHeaviestMotherFlavour", 0);
+  fChain->SetBranchStatus("muon_simPdgId", 0);
+  fChain->SetBranchStatus("muon_simMotherPdgId", 0);
+  fChain->SetBranchStatus("muon_simMatchQuality", 0);
+
+  fChain->SetCacheSize(128 * 1024 * 1024);
+  fChain->SetCacheLearnEntries(1000);
+  //fChain->AddBranchToCache("*", kTRUE);
+
+  outfile->SetCompressionAlgorithm(ROOT::kLZ4);
+  outfile->SetCompressionLevel(4);
+
   run_debug = HasFlag("RunDebug");
   cout << "[Vcb_Cal_TF::initializeAnalyzer] RunDebug = " << run_debug << endl;
 
@@ -273,11 +426,11 @@ void Vcb_Cal_TF::executeEvent()
       param.Clear();
 
       param.Muon_Tight_ID = "POGTightWithLooseIso";
-      // param.Muon_Loose_ID = "POGLooseWithLooseIso";
+      param.Muon_Loose_ID = "POGLooseWithLooseIso";
       param.Muon_Jet_Cleaning_ID = "POGTightWithTightIso";
 
       param.Electron_Tight_ID = "passMVAID_iso_WP90";
-      // param.Electron_Loose_ID = "passMVAID_iso_WP90";
+      param.Electron_Loose_ID = "passMVAID_iso_WP90";
       param.Electron_Jet_Cleaning_ID = "passMVAID_iso_WP80";
 
       param.Muon_ID_SF_Key = "NUM_TightID_DEN_TrackerMuons";
@@ -328,10 +481,34 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
     if (param.syst_ == AnalyzerParameter::Central && run_syst)
     {
       weight_pdf_alternative = GetPDFReweight();
-      for (int i = 0; i < 100; i++)
-        weight_pdf_error_set[i] = GetPDFReweight(i);
-      weight_pdf_as_up = GetPDFReweight("As_Up");
-      weight_pdf_as_down = GetPDFReweight("As_Down");
+
+      if (weight_PDF->size() == 100)
+      {
+        for (int i = 0; i < 100; i++)
+        {
+          // weight_pdf_error_set[i] = GetPDFReweight(i);
+          weight_pdf_error_set[i] = weight_PDF->at(i);
+        }
+      }
+      else
+      {
+        for (int i = 0; i < 100; i++)
+          weight_pdf_error_set[i] = 1.;
+      }
+
+      // if (central_pdf == "NNPDF31_nnlo_hessian_pdfas" || central_pdf == "NNPDF31_nnlo_as_0118_mc_hessian_pdfas")
+      if (weight_AlphaS->size() == 2)
+      {
+        // weight_pdf_as_down = GetPDFReweight("As_Down");
+        weight_pdf_as_down = weight_AlphaS->at(0);
+        // weight_pdf_as_up = GetPDFReweight("As_Up");
+        weight_pdf_as_up = weight_AlphaS->at(1);
+      }
+      else
+      {
+        weight_pdf_as_down = 1;
+        weight_pdf_as_up = 1;
+      }
     }
 
     // pileup reweight
@@ -356,8 +533,18 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
 
     // Top Pt reweight
     weight_top_pt = mcCorr->GetTopPtReweight(vec_gen);
-
+    weight_top_pt_mva = mcCorr->GetTopPtReweightMVA(vec_gen);
     weight *= weight_top_pt;
+
+    weight_b_frag_mva_nominal = mcCorr->GetBFragReweightMVA(vec_gen, 0);
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
+      weight_b_frag_mva_nominal = mcCorr->GetBFragReweightMVA(vec_gen, 1);
+
+    if (param.syst_ == AnalyzerParameter::Central && run_syst)
+    {
+      weight_hdamp_mva_down = mcCorr->GethDampReweightMVA(vec_gen, -1);
+      weight_hdamp_mva_up = mcCorr->GethDampReweightMVA(vec_gen, 1);
+    }
 
     // Scale Variation
     if (param.syst_ == AnalyzerParameter::Central && run_syst)
@@ -676,8 +863,8 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
   vector<Electron> vec_sel_electron = SelectElectrons(vec_this_electron, param.Electron_Tight_ID, el_trig_safe_pt_cut, ELECTRON_ETA);
 
   // for lepton veto
-  // vector<Muon> vec_muon_veto = SelectMuons(vec_this_muon, param.Muon_Loose_ID, MUON_PT_VETO, MUON_ETA);
-  // vector<Electron> vec_electron_veto = SelectElectrons(vec_this_electron, param.Electron_Loose_ID, ELECTRON_PT_VETO, ELECTRON_ETA);
+  vector<Muon> vec_muon_veto = SelectMuons(vec_this_muon, param.Muon_Loose_ID, MUON_PT_VETO, MUON_ETA);
+  vector<Electron> vec_electron_veto = SelectElectrons(vec_this_electron, param.Electron_Loose_ID, ELECTRON_PT_VETO, ELECTRON_ETA);
 
   // for lepton jet cleaning
   vector<Muon> vec_muon_jet_cleaning = SelectMuons(vec_this_muon, param.Muon_Jet_Cleaning_ID, mu_trig_safe_pt_cut, MUON_ETA);
@@ -728,11 +915,11 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
     }
     else if (run_el_ch)
     {
-      weight_sl_trig = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, 0);
+      weight_sl_trig = mcCorr->ElectronTrigger_SF("passMVAID_iso_WP80", el_trig, vec_sel_electron, 0);
       if (run_syst)
       {
-        weight_sl_trig_down = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, -1);
-        weight_sl_trig_up = mcCorr->ElectronTrigger_SF(param.Electron_Tight_ID, el_trig, vec_sel_electron, +1);
+        weight_sl_trig_down = mcCorr->ElectronTrigger_SF("passMVAID_iso_WP80", el_trig, vec_sel_electron, -1);
+        weight_sl_trig_up = mcCorr->ElectronTrigger_SF("passMVAID_iso_WP80", el_trig, vec_sel_electron, +1);
       }
     }
     weight *= weight_sl_trig;
@@ -744,6 +931,10 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
   {
     if (vec_sel_muon.size() != 1 || vec_sel_electron.size() != 0)
       return;
+    if (vec_muon_veto.size() != 1)
+      return;
+    if (vec_electron_veto.size() != 0)
+      return;
 
     muon = vec_sel_muon.at(0);
     lepton = muon;
@@ -751,6 +942,10 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
   else if (run_el_ch)
   {
     if (vec_sel_electron.size() != 1 || vec_sel_muon.size() != 0)
+      return;
+    if (vec_electron_veto.size() != 1)
+      return;
+    if (vec_muon_veto.size() != 0)
       return;
 
     electron = vec_sel_electron.at(0);
@@ -831,7 +1026,7 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
   } //  if (!IsDATA)
 
   // cut on jet
-  // // at least three jets
+  // at least four jets
   if (n_sel_jet < 4)
     return;
 
@@ -1124,8 +1319,12 @@ void Vcb_Cal_TF::executeEventFromParameter(AnalyzerParameter param)
     weight *= weight_c_tag;
   }
 
-  // at least two b-tag jets
-  if (n_b_jet < 2)
+  // // at least two b-tag jets
+  // if (n_b_jet < 2)
+  //   return;
+
+  // at least one b-tag jets
+  if (n_b_jet < 1)
     return;
 
   met_pt = met.Pt();
@@ -1196,6 +1395,8 @@ void Vcb_Cal_TF::Clear()
   weight_pdf_as_up = 1;
   weight_pdf_as_down = 1;
 
+  memset(weight_ps, 1, sizeof(weight_ps));
+
   weight_pileup = 1;
   weight_pileup_down = 1;
   weight_pileup_up = 1;
@@ -1216,6 +1417,13 @@ void Vcb_Cal_TF::Clear()
   weight_scale_variation_8 = 1;
 
   weight_top_pt = 1;
+  weight_top_pt_mva = 1;
+
+  weight_b_frag_mva_nominal = 1;
+  weight_b_frag_mva_up = 1;
+
+  weight_hdamp_mva_down = 1;
+  weight_hdamp_mva_up = 1;
 
   weight_mu_id = 1;
   weight_mu_id_down = 1;
@@ -1281,6 +1489,13 @@ int Vcb_Cal_TF::Chk_Included(const int index_matched_jet[4])
 
 void Vcb_Cal_TF::Make_Result_Tree(AnalyzerParameter &param)
 {
+  for (int i = 0; i < n_sel_jet; i++)
+  {
+    vec_jet_pt.push_back(vec_sel_jet[i].Pt());
+    vec_jet_eta.push_back(vec_sel_jet[i].Eta());
+    vec_jet_flavor.push_back(vec_sel_jet[i].hadronFlavour());
+  }
+
   map_result_tree[channel_name + param.GetSystType()]->Fill();
 
   return;
@@ -1328,6 +1543,7 @@ void Vcb_Cal_TF::Set_Result_Tree()
       param.syst_ = syst_type;
 
       TTree *result_tree = new TTree("Result_Tree", "Result_Tree");
+
       result_tree->SetDirectory(dir_syst[i][j]);
 
       if (syst_type == AnalyzerParameter::Central && run_syst)
@@ -1518,6 +1734,17 @@ void Vcb_Cal_TF::Set_Result_Tree()
       }
 
       result_tree->Branch("weight_top_pt", &weight_top_pt);
+      result_tree->Branch("weight_top_pt_mva", &weight_top_pt_mva);
+
+      result_tree->Branch("weight_b_frag_mva_nominal", &weight_b_frag_mva_nominal);
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+        result_tree->Branch("weight_b_frag_mva_up", &weight_b_frag_mva_up);
+
+      if (syst_type == AnalyzerParameter::Central && run_syst)
+      {
+        result_tree->Branch("weight_hdamp_mva_down", &weight_hdamp_mva_down);
+        result_tree->Branch("weight_hdamp_mva_up", &weight_hdamp_mva_up);
+      }
 
       result_tree->Branch("lepton_pt", &lepton_pt);
       result_tree->Branch("lepton_pt_uncorr", &lepton_pt_uncorr);
@@ -1549,13 +1776,13 @@ void Vcb_Cal_TF::Set_Result_Tree()
 
       result_tree->Branch("mt", &mt);
 
-      // For MC
-      result_tree->Branch("decay_mode", &decay_mode);
-      result_tree->Branch("genTtbarId", &genTtbarId);
-
       result_tree->Branch("Jet_Pt", &vec_jet_pt);
       result_tree->Branch("Jet_Eta", &vec_jet_eta);
       result_tree->Branch("Jet_Flavor", &vec_jet_flavor);
+
+      // For MC
+      result_tree->Branch("decay_mode", &decay_mode);
+      result_tree->Branch("genTtbarId", &genTtbarId);
 
       map_result_tree.insert({vec_channel[i] + param.GetSystType(), result_tree});
     } // loop over syst

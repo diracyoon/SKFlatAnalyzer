@@ -2,7 +2,6 @@
 
 AnalyzerCore::AnalyzerCore()
 {
-
   outfile = NULL;
   mcCorr = new MCCorrection();
   puppiCorr = new PuppiSoftdropMassCorr();
@@ -107,7 +106,6 @@ Event AnalyzerCore::GetEvent()
 
 std::vector<Muon> AnalyzerCore::GetAllMuons()
 {
-
   std::vector<Muon> out;
   if (!muon_pt)
     return out;
@@ -559,11 +557,13 @@ void AnalyzerCore::LoadJetVetoMap()
 
 bool AnalyzerCore::IsEventJetMapVetoed()
 {
+
   vector<Jet> jets = GetAllJets();
   std::vector<Jet> sel_jets = SelectJets(jets, "tight", 15., 5.);
   sel_jets = SelectJets(jets, "LoosePileupJetVeto", 15., 5.);
 
   std::vector<Muon> PFMuon = GetAllMuons();
+
   std::vector<Electron> EmptyElectronVector = {};
   sel_jets = JetsVetoLeptonInside(sel_jets, EmptyElectronVector, PFMuon, 0.2);
 
@@ -1028,18 +1028,36 @@ int AnalyzerCore::Get_W_Decay_Mode(const vector<Gen> &vec_gen)
   for (unsigned int i = 0; i < vec_gen.size(); i++)
   {
     Gen gen = vec_gen.at(i);
-
     int pid = gen.PID();
     int m_index = gen.MotherIndex();
 
-    // find last index of W+ and W-
-    if (pid == 24)
-      index_last_w = i;
-    if (pid == -24)
-      index_last_aw = i;
+    // Mother의 PID를 안전하게 가져오기 (m_index가 유효한지 체크)
+    int m_pid = (m_index >= 0 && m_index < (int)vec_gen.size()) ? vec_gen.at(m_index).PID() : 0;
+
+    // 🛡️ 1. 진짜 W+ 찾기 (Top 쿼크 또는 W+ 자신에게서 온 경우만 허용)
+    if (pid == 24 && (m_pid == 6 || m_pid == 24))
+    {
+      if (index_last_w != (int)i)
+      {
+        index_last_w = i;
+        index_d0_w = -999; // 새로운 W+ 족보를 찾았으니 딸 입자 인덱스 리셋
+        index_d1_w = -999;
+      }
+    }
+
+    // 🛡️ 2. 진짜 W- 찾기 (Anti-Top 쿼크 또는 W- 자신에게서 온 경우만 허용)
+    if (pid == -24 && (m_pid == -6 || m_pid == -24))
+    {
+      if (index_last_aw != (int)i)
+      {
+        index_last_aw = i;
+        index_d0_aw = -999; // 새로운 W- 족보를 찾았으니 딸 입자 인덱스 리셋
+        index_d1_aw = -999;
+      }
+    }
 
     // find decay products of W+
-    if (m_index == index_last_w && pid != 24)
+    if (index_last_w != -999 && m_index == index_last_w && pid != 24)
     {
       if (index_d0_w == -999)
         index_d0_w = i;
@@ -1048,7 +1066,7 @@ int AnalyzerCore::Get_W_Decay_Mode(const vector<Gen> &vec_gen)
     }
 
     // find decay products of W-
-    if (m_index == index_last_aw && pid != -24)
+    if (index_last_aw != -999 && m_index == index_last_aw && pid != -24)
     {
       if (index_d0_aw == -999)
         index_d0_aw = i;
@@ -1064,26 +1082,32 @@ int AnalyzerCore::Get_W_Decay_Mode(const vector<Gen> &vec_gen)
     return 999;
   }
 
+  // int chk_ttbar_mode = 0;
   int index_had_w[2];
+
   // W+ decay hadronically
   if (TMath::Abs(vec_gen.at(index_d0_w).PID()) < 10)
   {
     index_had_w[0] = index_d0_w;
     index_had_w[1] = index_d1_w;
     // cout << "test W+ decay hadronically" << endl;
+
+    // chk_ttbar_mode++;
   }
   // W- decay hadronically
-  else if (TMath::Abs(vec_gen.at(index_d0_aw).PID() < 10))
+  // TTJJ is not considered. TTJJ should be vetoed earlier
+  else if (TMath::Abs(vec_gen.at(index_d0_aw).PID()) < 10)
   {
     index_had_w[0] = index_d0_aw;
     index_had_w[1] = index_d1_aw;
     // cout << "test W- decay hadronically" << endl;
+
+    // chk_ttbar_mode++;
   }
   // no W decays hadronically
   else
   {
     // if(run_debug) cout << "No W decays hadronically" << endl;
-
     return 999;
   }
 
@@ -1102,6 +1126,99 @@ int AnalyzerCore::Get_W_Decay_Mode(const vector<Gen> &vec_gen)
 
   return decay_mode;
 } // int AnalyzerCore::Get_W_Decay_Mode(const vector<Gen>& vec_gen)
+
+//////////
+
+bool AnalyzerCore::Veto_TTJJ(const vector<Gen> &vec_gen)
+{
+  // veto TTJJ events in TT_herwig since it is inclusive sample
+
+  int index_last_w = -999;
+  int index_last_aw = -999;
+  int index_d0_w = -999;
+  int index_d1_w = -999;
+  int index_d0_aw = -999;
+  int index_d1_aw = -999;
+
+  // scan gen to find W
+  for (unsigned int i = 0; i < vec_gen.size(); i++)
+  {
+    Gen gen = vec_gen.at(i);
+    int pid = gen.PID();
+    int m_index = gen.MotherIndex();
+
+    // 1. 안전하게 Mother PID 가져오기 (인덱스 초과 방지)
+    int m_pid = 0;
+    if (m_index >= 0 && m_index < (int)vec_gen.size())
+    {
+      m_pid = vec_gen.at(m_index).PID();
+    }
+
+    // 2. 진짜 W+ 찾기 (Top 쿼크[6] 또는 W+ 복제본[24]에서 온 경우만)
+    if (pid == 24 && (m_pid == 6 || m_pid == 24))
+    {
+      if (index_last_w != (int)i)
+      {
+        index_last_w = i;
+        index_d0_w = -999; // 💥 새로운 W+를 찾았으니 이전 붕괴 산물 찌꺼기 초기화
+        index_d1_w = -999;
+      }
+    }
+
+    // 3. 진짜 W- 찾기 (Anti-Top 쿼크[-6] 또는 W- 복제본[-24]에서 온 경우만)
+    if (pid == -24 && (m_pid == -6 || m_pid == -24))
+    {
+      if (index_last_aw != (int)i)
+      {
+        index_last_aw = i;
+        index_d0_aw = -999; // 💥 새로운 W-를 찾았으니 이전 붕괴 산물 찌꺼기 초기화
+        index_d1_aw = -999;
+      }
+    }
+
+    // 4. W+의 붕괴 산물 찾기 (index_last_w != -999 조건으로 가짜 산물 등록 방지)
+    if (index_last_w != -999 && m_index == index_last_w && pid != 24)
+    {
+      if (index_d0_w == -999)
+        index_d0_w = i;
+      else
+        index_d1_w = i;
+    }
+
+    // 5. W-의 붕괴 산물 찾기 (index_last_aw != -999 조건으로 가짜 산물 등록 방지)
+    if (index_last_aw != -999 && m_index == index_last_aw && pid != -24)
+    {
+      if (index_d0_aw == -999)
+        index_d0_aw = i;
+      else
+        index_d1_aw = i;
+    }
+  }
+
+  // if input sample is not TT, so both of W couldn't be found
+  if (index_last_w == -999 || index_last_aw == -999)
+  {
+    // if(run_debug) cout << "Can't find both of W" << endl;
+    return false;
+  }
+
+  int chk_ttbar_mode = 0;
+
+  // W+ decay hadronically
+  if (TMath::Abs(vec_gen.at(index_d0_w).PID()) < 10)
+    chk_ttbar_mode++;
+
+  // W- decay hadronically
+  if (TMath::Abs(vec_gen.at(index_d0_aw).PID()) < 10)
+    chk_ttbar_mode++;
+
+  if (chk_ttbar_mode == 2)
+    return true;
+  else
+    return false;
+
+  return false;
+}
 
 //////////
 
@@ -1157,7 +1274,12 @@ std::vector<Jet> AnalyzerCore::ScaleJetsIndividualSource(const std::vector<Jet> 
 
     Jet this_jet = jets.at(i);
 
-    double get_shift = GetJECUncertainty(source, "AK4PFchs", this_jet.Eta(), this_jet.Pt(), sys);
+    // double get_shift = GetJECUncertainty(source, "AK4PFchs", this_jet.Eta(), this_jet.Pt(), sys);
+    double get_shift = GetJECUncertainty_JSON(source, "AK4PFchs", this_jet.Eta(), this_jet.Pt(), sys);
+
+    // if (i == 0)
+    //   cout << "test " << GetJECUncertainty(source, "AK4PFchs", this_jet.Eta(), this_jet.Pt(), sys) << " " << GetJECUncertainty_JSON(source, "AK4PFchs", this_jet.Eta(), this_jet.Pt(), sys) << endl;
+
     this_jet *= get_shift;
 
     out.push_back(this_jet);
@@ -1307,6 +1429,38 @@ void AnalyzerCore::SetupJECUncertainty(TString source, TString JetType)
 
 //////////
 
+void AnalyzerCore::SetupJECUncertainty_JSON(TString source, TString JetType)
+{
+  if (cset_jec == nullptr)
+  {
+    TString datapath = getenv("DATA_DIR");
+    TString jec_json_path = datapath + "/" + GetEra() + "/JME/jet_jerc.json.gz";
+    cset_jec = CorrectionSet::from_file(jec_json_path.Data());
+  }
+
+  TString reg_name;
+  if (DataEra == "2016preVFP")
+    reg_name = "Summer19UL16APV_V7_MC_Regrouped_" + source + "_" + JetType;
+  else if (DataEra == "2016postVFP")
+    reg_name = "Summer19UL16_V7_MC_Regrouped_" + source + "_" + JetType;
+  else if (DataEra == "2017")
+    reg_name = "Summer19UL17_V5_MC_Regrouped_" + source + "_" + JetType;
+  else if (DataEra == "2018")
+    reg_name = "Summer19UL18_V5_MC_Regrouped_" + source + "_" + JetType;
+  else
+  {
+    cout << "[AnalyzerCore::SetupJECUncertainty_JSON] Era not found ..." << endl;
+    exit(EXIT_FAILURE);
+  }
+
+  Correction::Ref correction_ref_jec = cset_jec->at(reg_name.Data());
+  map_correction_ref_jec_source.insert({source, correction_ref_jec});
+
+  return;
+} // void AnalyzerCore::SetupJECUncertainty_JSON(TString source, TString JetType)
+
+//////////
+
 float AnalyzerCore::GetJECUncertainty(TString source, TString JetType, float eta, float pt, int sys)
 {
   std::map<TString, std::vector<std::map<float, std::vector<float>>>>::iterator mapit;
@@ -1399,6 +1553,17 @@ float AnalyzerCore::GetJECUncertainty(TString source, TString JetType, float eta
 
   return unc;
 }
+
+//////////
+
+float AnalyzerCore::GetJECUncertainty_JSON(TString source, TString JetType, float eta, float pt, int sys)
+{
+  float unc = (sys > 0) ? 1 + map_correction_ref_jec_source[source]->evaluate({eta, pt}) : 1 - map_correction_ref_jec_source[source]->evaluate({eta, pt});
+
+  return unc;
+} // float AnalyzerCore::GetJECUncertainty_JSON(TString source, TString JetType, float eta, float pt, int sys)
+
+//////////
 
 std::vector<Jet> AnalyzerCore::SmearJets(const std::vector<Jet> &jets, int sys)
 {
@@ -2110,7 +2275,7 @@ float AnalyzerCore::Weight_HEM_Veto(const vector<Jet> &jets)
   if (IsDATA)
   {
     // for period B(only runnumber 319077),  C, D return true
-    if (run <= 319077)
+    if (319077 <= run)
       is_hem_period = true;
   }
   else
@@ -2140,7 +2305,13 @@ float AnalyzerCore::Weight_HEM_Veto(const vector<Jet> &jets)
     if (IsData)
       return 0.;
     else
-      return 38.546 / 58.827; // run 319077 lumi 0.01637, 2018 lumi except period B+C lumi 38.562
+      return 38.588047804 / 59.561262519; // B319077+C+D
+    // RunA: 13.961196586
+    // RunB : 7.028282918
+    // RunC : 6.872940971
+    // RunD : 31.698842045
+    // 2018 Total : 59.561262519
+    // B319077 + C + D : 38.588047804
   }
 
   return 1.;
@@ -2157,12 +2328,25 @@ void AnalyzerCore::PrintGen(const std::vector<Gen> &gens)
   cout << "===========================================================" << endl;
   cout << "RunNumber:EventNumber = " << run << ":" << event << endl;
   cout << "index\tPID\tStatus\tMIdx\tMPID\tStart\tPt\tEta\tPhi\tM" << endl;
+  for (unsigned int i = 0; i < 2; i++)
+  {
+    Gen gen = gens.at(i);
+    cout << i << "\t" << gen.PID() << "\t" << gen.Status() << "\t" << gen.MotherIndex() << "\t" << -999 << "\t" << -999 << "\t";
+    printf("%.2f\t%.2f\t%.2f\t%.2f\n", gen.Pt(), gen.Eta(), gen.Phi(), gen.M());
+  }
   for (unsigned int i = 2; i < gens.size(); i++)
   {
     Gen gen = gens.at(i);
     vector<int> history = TrackGenSelfHistory(gen, gens);
-    cout << i << "\t" << gen.PID() << "\t" << gen.Status() << "\t" << gen.MotherIndex() << "\t" << gens.at(gen.MotherIndex()).PID() << "\t" << history[0] << "\t";
+
+    int mIdx = gen.MotherIndex();
+    int mPID = (mIdx >= 0 && mIdx < (int)gens.size()) ? gens.at(mIdx).PID() : -999;
+
+    cout << i << "\t" << gen.PID() << "\t" << gen.Status() << "\t" << mIdx << "\t" << mPID << "\t" << history[0] << "\t";
     printf("%.2f\t%.2f\t%.2f\t%.2f\n", gen.Pt(), gen.Eta(), gen.Phi(), gen.M());
+
+    // 2. 버퍼 강제 플러시: 출력 착시를 막기 위해 매 루프마다 화면에 즉시 쏘아줌
+    cout << flush;
   }
 }
 
@@ -2258,31 +2442,30 @@ vector<int> AnalyzerCore::TrackGenSelfHistory(const Gen &me, const std::vector<G
 
   int myindex = me.Index();
 
+  // 1. myindex가 쓰레기값일 경우 원천 차단
+  if (myindex < 0 || myindex >= (int)gens.size())
+    return {-1, -1};
   if (myindex < 2)
-  {
-    vector<int> out = {myindex, -1};
-    return out;
-  }
+    return {myindex, -1};
 
-  int mypid = gens.at(myindex).PID();
+  // 2. gens.at() 호출 없이 me.PID() 직접 사용
+  int mypid = me.PID();
 
   int currentidx = myindex;
   int motherindex = me.MotherIndex();
 
-  while (gens.at(motherindex).PID() == mypid)
+  // 3. Herwig 특유의 자가 참조(무한 루프) 방지 카운터 추가
+  int safety_count = 0;
+  while (motherindex >= 0 && motherindex < (int)gens.size() && gens.at(motherindex).PID() == mypid)
   {
+    if (safety_count++ > 1000)
+      break; // 무한 루프 발생 시 강제 탈출
 
-    //==== Go one generation up
     currentidx = motherindex;
     motherindex = gens.at(motherindex).MotherIndex();
-
-    if (motherindex < 0)
-      break;
   }
 
-  vector<int> out = {currentidx, motherindex};
-
-  return out;
+  return {currentidx, motherindex};
 }
 
 bool AnalyzerCore::IsFromHadron(const Gen &me, const std::vector<Gen> &gens)
